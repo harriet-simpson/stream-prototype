@@ -64,6 +64,7 @@
       flex-shrink: 0;
     }
     .logo-mark svg { width: 16px; height: 16px; fill: #fff; }
+    .logo-img { height: 22px; width: auto; display: block; }
     .logo-text {
       font-size: 15px;
       font-weight: 700;
@@ -426,10 +427,7 @@
   <!-- ═══ SIDEBAR ═══ -->
   <nav class="sidebar">
     <div class="logo">
-      <div class="logo-mark">
-        <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18A9 9 0 0 0 12 3zm-1 13V8l7 4-7 4z"/></svg>
-      </div>
-      <span class="logo-text">Myndstream</span>
+      <img src="assets/myndstream.svg" alt="Myndstream" class="logo-img" />
     </div>
 
     <ul class="nav-list">
@@ -438,6 +436,13 @@
       <li><a href="#"><span class="icon">♡</span> My Favorites</a></li>
       <li><a href="#"><span class="icon">♪</span> Music Shaker</a></li>
       <li><a href="#"><span class="icon">◎</span> Zones</a></li>
+    </ul>
+
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section-label">Features</div>
+    <ul class="nav-list">
+      <li><a href="circadian-radio.html"><span class="icon">🌗</span> Circadian Radio</a></li>
+      <li><a href="session-filter.html"><span class="icon">⏱</span> Treatment Timer</a></li>
     </ul>
 
     <div class="sidebar-divider"></div>
@@ -668,7 +673,7 @@
           <button class="dur-btn active" onclick="selectDuration(this)">60 minutes</button>
           <button class="dur-btn" onclick="selectDuration(this)">90 minutes</button>
           <button class="dur-btn" onclick="selectDuration(this)">Over 3 hours</button>
-          <button class="dur-btn span-2" onclick="selectDuration(this)">All day</button>
+          <button class="dur-btn span-2" onclick="window.location.href='circadian-radio.html'">🌗 All day — Circadian Radio</button>
         </div>
       </div>
 
@@ -793,12 +798,14 @@
     // would navigate to soundscapes list
   }
 
-  /* Activate nav items */
+  /* Activate nav items — only preventDefault on placeholder # links */
   document.querySelectorAll('.nav-list a').forEach(link => {
     link.addEventListener('click', function(e) {
-      e.preventDefault();
-      document.querySelectorAll('.nav-list a').forEach(l => l.classList.remove('active'));
-      this.classList.add('active');
+      if (this.getAttribute('href') === '#') {
+        e.preventDefault();
+        document.querySelectorAll('.nav-list a').forEach(l => l.classList.remove('active'));
+        this.classList.add('active');
+      }
     });
   });
 

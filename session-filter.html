@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Treatment Timer — Myndstream</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, sans-serif;
+      background: #0b0c16;
+      color: #fff;
+      display: flex; flex-direction: column;
+      height: 100vh; overflow: hidden;
+    }
+
+    .top-banner {
+      background: #12131f; text-align: center;
+      padding: 7px 16px; font-size: 11.5px; color: #999;
+      border-bottom: 1px solid #1e1f30; flex-shrink: 0;
+    }
+    .top-banner a { color: #6ecfe0; text-decoration: none; }
+
+    .layout { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── SIDEBAR (shared) ── */
+    .sidebar {
+      width: 210px; background: #0d0e1b;
+      border-right: 1px solid #1a1b2c;
+      display: flex; flex-direction: column;
+      overflow-y: auto; flex-shrink: 0;
+    }
+    .sidebar::-webkit-scrollbar { width: 0; }
+    .logo {
+      display: flex; align-items: center;
+      padding: 18px 16px 14px; text-decoration: none;
+    }
+    .logo-img { height: 22px; width: auto; display: block; }
+    .nav-list { list-style: none; padding: 4px 0; }
+    .nav-list a {
+      display: flex; align-items: center; gap: 11px;
+      padding: 9px 16px; color: #7a7b94; font-size: 13px;
+      text-decoration: none; transition: color 0.15s, background 0.15s;
+    }
+    .nav-list a:hover { color: #d0d1e8; background: #161727; }
+    .nav-list a.active { color: #7dd3e8; background: #161727; }
+    .nav-list a .icon { font-size: 15px; width: 18px; text-align: center; }
+    .sidebar-divider { height: 1px; background: #1a1b2c; margin: 8px 14px; }
+    .sidebar-section-label {
+      padding: 8px 16px 3px; font-size: 9.5px; color: #4a4b62;
+      text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;
+    }
+
+    /* ── MAIN ── */
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .topbar {
+      display: flex; justify-content: flex-end; align-items: center; gap: 16px;
+      padding: 11px 22px; background: #0d0e1b;
+      border-bottom: 1px solid #1a1b2c; flex-shrink: 0;
+    }
+    .topbar-device { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #6a7090; }
+    .account-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: #1a1b2e; border: 1px solid #26273e; border-radius: 18px;
+      padding: 6px 14px; cursor: pointer; color: #c0c1d8; font-size: 12.5px;
+      transition: background 0.15s;
+    }
+    .account-btn:hover { background: #22233a; }
+    .account-btn::after { content: '▾'; font-size: 10px; color: #888; }
+
+    /* ── PAGE HEADER ── */
+    .page-back {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: #6a7090; font-size: 12px; text-decoration: none;
+      margin-bottom: 14px; transition: color 0.15s;
+    }
+    .page-back:hover { color: #c0c1d8; }
+    .page-title { font-size: 26px; font-weight: 700; letter-spacing: -0.3px; }
+    .page-subtitle { font-size: 13px; color: #6a7090; margin-top: 5px; margin-bottom: 24px; line-height: 1.5; }
+
+    /* ════════════════════════════
+       VIEW 1: FILTER + RESULTS
+    ════════════════════════════ */
+    #view-filter {
+      flex: 1; overflow-y: auto; padding: 28px 28px 48px;
+    }
+    #view-filter::-webkit-scrollbar { width: 5px; }
+    #view-filter::-webkit-scrollbar-thumb { background: #22233a; border-radius: 3px; }
+
+    /* Filter chip bar */
+    .filter-bar {
+      display: flex; gap: 8px;
+      overflow-x: auto; padding-bottom: 4px;
+      margin-bottom: 18px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .filter-bar::-webkit-scrollbar { height: 0; }
+
+    .filter-chip {
+      background: #161727; border: 1px solid #22233a;
+      border-radius: 20px; padding: 8px 18px;
+      color: #b0b1cc; font-size: 13px; font-weight: 600;
+      font-family: inherit; cursor: pointer;
+      white-space: nowrap; flex-shrink: 0;
+      transition: all 0.15s;
+    }
+    .filter-chip:hover { background: #1e1f34; color: #fff; }
+    .filter-chip.active {
+      background: linear-gradient(135deg, #1e4a5a 0%, #122838 100%);
+      border-color: #3a8aaa; color: #fff;
+    }
+
+    .results-count {
+      font-size: 12px; color: #6a7090; margin-bottom: 14px;
+    }
+
+    /* Playlist card grid */
+    .playlist-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    }
+
+    .playlist-card {
+      position: relative; border-radius: 12px;
+      overflow: hidden; cursor: pointer;
+      aspect-ratio: 1 / 0.78;
+      transition: transform 0.15s, filter 0.15s;
+    }
+    .playlist-card:hover { transform: scale(1.02); filter: brightness(1.1); }
+
+    .playlist-card .card-img {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover; border-radius: 12px;
+    }
+    .playlist-card .card-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.25) 40%, rgba(0,0,0,0.75) 100%);
+      border-radius: 12px;
+    }
+    .playlist-card .cat-tag {
+      position: absolute; top: 10px; left: 10px;
+      background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 12px; padding: 3px 9px;
+      font-size: 10px; font-weight: 600; letter-spacing: 0.4px;
+      color: rgba(255,255,255,0.85);
+    }
+    .playlist-card .dur-tag {
+      position: absolute; top: 10px; right: 10px;
+      font-size: 11px; font-weight: 600;
+      color: rgba(255,255,255,0.65);
+    }
+    .playlist-card .card-name {
+      position: absolute; bottom: 12px; left: 12px; right: 12px;
+      font-size: 14px; font-weight: 700; line-height: 1.25;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.7);
+    }
+
+    /* No results state */
+    .no-results {
+      text-align: center; padding: 60px 20px;
+      color: #4a4b62; font-size: 14px;
+    }
+
+    /* ── BG GRADIENT HELPERS (from index.html) ── */
+    .bg-relax       { background: linear-gradient(160deg,#1f5c3a 0%,#0f2e1e 100%); }
+    .bg-unwind      { background: linear-gradient(150deg,#6b3a1f 0%,#3a1a0a 100%); }
+    .bg-focus       { background: linear-gradient(140deg,#163060 0%,#0b1a38 100%); }
+    .bg-sleep       { background: linear-gradient(140deg,#111f50 0%,#090e2a 100%); }
+    .bg-recovery    { background: linear-gradient(140deg,#1a4830 0%,#0d2618 100%); }
+    .bg-strength    { background: linear-gradient(140deg,#4a2a10 0%,#2a1508 100%); }
+    .bg-pain        { background: linear-gradient(140deg,#501818 0%,#2a0c0c 100%); }
+    .bg-tension     { background: linear-gradient(140deg,#204856 0%,#10252c 100%); }
+    .bg-reiki       { background: linear-gradient(140deg,#3a2060 0%,#1e1030 100%); }
+    .bg-breathwork  { background: linear-gradient(140deg,#163850 0%,#0b1c28 100%); }
+    .bg-gentle      { background: linear-gradient(140deg,#163828 0%,#0b1c14 100%); }
+    .bg-meditation  { background: linear-gradient(140deg,#223c16 0%,#111e0b 100%); }
+    .bg-nature      { background: linear-gradient(140deg,#1f4825 0%,#0f2412 100%); }
+
+    /* ════════════════════════════
+       VIEW 2: PLAYLIST DETAIL
+    ════════════════════════════ */
+    #view-playlist {
+      flex: 1; display: none; flex-direction: column;
+      overflow-y: auto; position: relative;
+    }
+
+    .detail-bg {
+      position: absolute; inset: 0;
+      opacity: 0.25;
+      transition: opacity 0.4s ease;
+    }
+
+    .detail-inner {
+      position: relative; z-index: 2;
+      flex: 1; display: flex; flex-direction: column;
+      padding: 20px 28px 36px;
+    }
+
+    .detail-back {
+      display: inline-flex; align-items: center; gap: 7px;
+      color: rgba(255,255,255,0.6); font-size: 12px;
+      background: none; border: none; cursor: pointer;
+      padding: 0; margin-bottom: 0; font-family: inherit;
+      transition: color 0.15s;
+    }
+    .detail-back:hover { color: rgba(255,255,255,0.95); }
+
+    .detail-center {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; gap: 0;
+    }
+
+    .detail-cat-pill {
+      display: inline-flex; align-items: center;
+      background: rgba(255,255,255,0.14); backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.22);
+      border-radius: 20px; padding: 5px 14px;
+      font-size: 11px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; margin-bottom: 16px;
+    }
+
+    .detail-name {
+      font-size: 32px; font-weight: 800;
+      letter-spacing: -0.5px; margin-bottom: 8px;
+    }
+
+    .detail-duration {
+      font-size: 14px; color: rgba(255,255,255,0.55);
+      margin-bottom: 30px;
+    }
+
+    /* Play preview */
+    .preview-play-btn {
+      width: 72px; height: 72px;
+      background: rgba(255,255,255,0.95);
+      border-radius: 50%; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.15s, background 0.15s;
+      margin-bottom: 40px; flex-shrink: 0;
+    }
+    .preview-play-btn:hover { transform: scale(1.07); background: #fff; }
+    .preview-play-btn svg { width: 28px; height: 28px; fill: #111; }
+    .preview-play-btn .pause-svg { display: none; }
+    .preview-play-btn.playing .play-svg { display: none; }
+    .preview-play-btn.playing .pause-svg { display: block; }
+
+    /* End-of-session chooser */
+    .end-section {
+      width: 100%; max-width: 400px; margin-bottom: 32px;
+    }
+    .end-label {
+      font-size: 13px; font-weight: 600; color: #bbbcd4;
+      margin-bottom: 12px; letter-spacing: 0.2px;
+    }
+    .end-options { display: flex; gap: 9px; }
+
+    .end-opt {
+      flex: 1; background: #161727; border: 1px solid #22233a;
+      border-radius: 12px; padding: 16px 8px 14px;
+      cursor: pointer; text-align: center; color: #b0b1cc;
+      font-family: inherit; transition: all 0.15s;
+    }
+    .end-opt:hover { background: #1e1f34; color: #fff; }
+    .end-opt.active {
+      background: linear-gradient(135deg, #1e4a5a 0%, #122838 100%);
+      border-color: #3a8aaa; color: #fff;
+    }
+    .end-opt .eo-icon { display: block; font-size: 22px; margin-bottom: 7px; }
+    .end-opt .eo-name { display: block; font-size: 12.5px; font-weight: 600; }
+    .end-opt .eo-desc {
+      display: block; font-size: 10px; color: rgba(255,255,255,0.45); margin-top: 3px;
+    }
+    .end-opt.active .eo-desc { color: rgba(255,255,255,0.7); }
+
+    /* Start session CTA */
+    .start-btn {
+      background: linear-gradient(135deg, #5bacd4 0%, #7b6cf8 100%);
+      border: none; border-radius: 26px;
+      padding: 15px 52px; color: #fff;
+      font-size: 15px; font-weight: 700; font-family: inherit;
+      cursor: pointer; transition: transform 0.15s, filter 0.15s;
+      letter-spacing: 0.2px;
+    }
+    .start-btn:hover { transform: scale(1.03); filter: brightness(1.1); }
+
+    /* ════════════════════════════
+       VIEW 3: ACTIVE SESSION
+    ════════════════════════════ */
+    #view-session {
+      flex: 1; display: none; flex-direction: column;
+      position: relative; overflow: hidden;
+    }
+
+    .session-bg {
+      position: absolute; inset: 0; opacity: 0.2;
+      transition: opacity 0.4s ease;
+    }
+    .session-vignette {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at center, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.7) 100%);
+    }
+
+    .session-inner {
+      position: relative; z-index: 2;
+      flex: 1; display: flex; flex-direction: column;
+      padding: 20px 28px 32px;
+    }
+
+    .session-back {
+      display: inline-flex; align-items: center; gap: 7px;
+      color: rgba(255,255,255,0.5); font-size: 12px;
+      background: none; border: none; cursor: pointer;
+      padding: 0; font-family: inherit; transition: color 0.15s;
+    }
+    .session-back:hover { color: rgba(255,255,255,0.9); }
+
+    .session-center {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+    }
+
+    .session-tag {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(255,255,255,0.12); backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 20px; padding: 4px 12px;
+      font-size: 10px; font-weight: 700; letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+    .session-tag .s-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #4ade80;
+      animation: pulse-dot 1.4s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.35; transform: scale(0.75); }
+    }
+
+    .session-name { font-size: 30px; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.4px; }
+    .session-cat { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 28px; }
+
+    /* Countdown */
+    .session-timer {
+      font-size: 56px; font-weight: 200;
+      letter-spacing: 2px; margin-bottom: 32px;
+      font-variant-numeric: tabular-nums;
+      color: rgba(255,255,255,0.9);
+    }
+
+    /* Session play/pause */
+    .session-play-btn {
+      width: 68px; height: 68px;
+      background: rgba(255,255,255,0.92);
+      border-radius: 50%; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.15s; margin-bottom: 36px;
+    }
+    .session-play-btn:hover { transform: scale(1.07); }
+    .session-play-btn svg { width: 26px; height: 26px; fill: #111; }
+    .session-play-btn .sp-pause { display: none; }
+    .session-play-btn.playing .sp-play { display: none; }
+    .session-play-btn.playing .sp-pause { display: block; }
+
+    /* Session progress bar */
+    .session-progress-wrap {
+      width: 100%; max-width: 340px;
+      height: 4px; background: rgba(255,255,255,0.12);
+      border-radius: 2px; margin-bottom: 12px;
+      overflow: hidden;
+    }
+    .session-progress-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, #5bacd4, #7b6cf8);
+      border-radius: 2px; transition: width 0.5s linear;
+    }
+
+    .session-end-note {
+      font-size: 11px; color: rgba(255,255,255,0.4);
+    }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #22233a; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<div class="top-banner">
+  From Apple: enjoy your free trial. Explore our <a href="#">app</a>
+</div>
+
+<div class="layout">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <nav class="sidebar">
+    <a href="index.html" class="logo">
+      <img src="assets/myndstream.svg" alt="Myndstream" class="logo-img" />
+    </a>
+    <ul class="nav-list">
+      <li><a href="index.html"><span class="icon">⌂</span> Home</a></li>
+      <li><a href="#"><span class="icon">⌕</span> Search</a></li>
+      <li><a href="#"><span class="icon">♡</span> My Favorites</a></li>
+      <li><a href="#"><span class="icon">♪</span> Music Shaker</a></li>
+      <li><a href="#"><span class="icon">◎</span> Zones</a></li>
+    </ul>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section-label">Features</div>
+    <ul class="nav-list">
+      <li><a href="circadian-radio.html"><span class="icon">🌗</span> Circadian Radio</a></li>
+      <li><a href="session-filter.html" class="active"><span class="icon">⏱</span> Treatment Timer</a></li>
+    </ul>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section-label">Your Plan</div>
+    <ul class="nav-list">
+      <li><a href="#"><span class="icon">📱</span> Mobile Treatments</a></li>
+    </ul>
+  </nav>
+
+  <!-- ═══ MAIN ═══ -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-device"><span>🎧</span> Listening on Harriet's iPhone</div>
+      <button class="account-btn">Account</button>
+    </div>
+
+    <!-- ── VIEW 1: FILTER + RESULTS ── -->
+    <div id="view-filter">
+      <a href="index.html" class="page-back">← Back to Home</a>
+      <h1 class="page-title">Treatment Timer</h1>
+      <p class="page-subtitle">Find the perfect playlist for your treatment length.</p>
+
+      <div class="filter-bar" id="filterBar">
+        <button class="filter-chip active" data-duration="all" onclick="selectFilter(this)">All</button>
+        <button class="filter-chip" data-duration="15" onclick="selectFilter(this)">15 min</button>
+        <button class="filter-chip" data-duration="20" onclick="selectFilter(this)">20 min</button>
+        <button class="filter-chip" data-duration="30" onclick="selectFilter(this)">30 min</button>
+        <button class="filter-chip" data-duration="45" onclick="selectFilter(this)">45 min</button>
+        <button class="filter-chip" data-duration="50" onclick="selectFilter(this)">50 min</button>
+        <button class="filter-chip" data-duration="60" onclick="selectFilter(this)">60 min</button>
+        <button class="filter-chip" data-duration="90" onclick="selectFilter(this)">90 min</button>
+      </div>
+
+      <div class="results-count" id="resultsCount"></div>
+      <div class="playlist-grid" id="playlistGrid"></div>
+    </div>
+
+    <!-- ── VIEW 2: PLAYLIST DETAIL ── -->
+    <div id="view-playlist">
+      <div class="detail-bg" id="detailBg"></div>
+      <div class="detail-inner">
+        <button class="detail-back" onclick="showFilter()">← Treatment Timer</button>
+
+        <div class="detail-center">
+          <div class="detail-cat-pill" id="detailCat">Relaxation</div>
+          <div class="detail-name" id="detailName">Deep Tissue Flow</div>
+          <div class="detail-duration" id="detailDur">50 minutes</div>
+
+          <button class="preview-play-btn" id="previewBtn" onclick="togglePreview()">
+            <svg class="play-svg" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <svg class="pause-svg" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+          </button>
+
+          <div class="end-section">
+            <div class="end-label">When this session ends</div>
+            <div class="end-options">
+              <button class="end-opt active" data-end="silence" onclick="selectEnd(this)">
+                <span class="eo-icon">🔇</span>
+                <span class="eo-name">Silence</span>
+                <span class="eo-desc">Fade to silence</span>
+              </button>
+              <button class="end-opt" data-end="repeat" onclick="selectEnd(this)">
+                <span class="eo-icon">🔁</span>
+                <span class="eo-name">Repeat</span>
+                <span class="eo-desc">Loop the playlist</span>
+              </button>
+              <button class="end-opt" data-end="ambient" onclick="selectEnd(this)">
+                <span class="eo-icon">🎵</span>
+                <span class="eo-name">Ambient</span>
+                <span class="eo-desc">Default ambient</span>
+              </button>
+            </div>
+          </div>
+
+          <button class="start-btn" onclick="startSession()">Start Session</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── VIEW 3: ACTIVE SESSION ── -->
+    <div id="view-session">
+      <div class="session-bg" id="sessionBg"></div>
+      <div class="session-vignette"></div>
+      <div class="session-inner">
+        <button class="session-back" onclick="stopSession()">← End Session</button>
+
+        <div class="session-center">
+          <div class="session-tag"><div class="s-dot"></div> IN SESSION</div>
+          <div class="session-name" id="sessionName">Deep Tissue Flow</div>
+          <div class="session-cat" id="sessionCat">Pain Relief · 50 min</div>
+
+          <div class="session-timer" id="sessionTimer">50:00</div>
+
+          <button class="session-play-btn playing" id="sessionPlayBtn" onclick="toggleSession()">
+            <svg class="sp-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <svg class="sp-pause" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+          </button>
+
+          <div class="session-progress-wrap">
+            <div class="session-progress-fill" id="sessionProgress"></div>
+          </div>
+
+          <div class="session-end-note" id="sessionEndNote">After session: Fade to silence</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  /* ══════════════════════
+     MOCK DATA
+  ══════════════════════ */
+  /* Category → image mapping */
+  const CAT_IMAGES = {
+    'Relaxation':  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&q=80&auto=format&fit=crop',
+    'Focus':       'https://images.unsplash.com/photo-1470813740244-df37b8c1edcb?w=500&q=80&auto=format&fit=crop',
+    'Recovery':    'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=500&q=80&auto=format&fit=crop',
+    'Pain Relief': 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=500&q=80&auto=format&fit=crop',
+    'Sleep':       'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?w=500&q=80&auto=format&fit=crop',
+    'Strength':    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500&q=80&auto=format&fit=crop',
+  };
+
+  const PLAYLISTS = [
+    { id: 'quick-calm',       name: 'Quick Calm',         category: 'Relaxation',  duration: 15, img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&q=80&auto=format&fit=crop' },
+    { id: 'express-focus',    name: 'Express Focus',      category: 'Focus',       duration: 15, img: 'https://images.unsplash.com/photo-1470813740244-df37b8c1edcb?w=500&q=80&auto=format&fit=crop' },
+
+    { id: 'morning-restore',  name: 'Morning Restore',    category: 'Recovery',    duration: 20, img: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=500&q=80&auto=format&fit=crop' },
+    { id: 'tension-melt',     name: 'Tension Melt',       category: 'Pain Relief', duration: 20, img: 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=500&q=80&auto=format&fit=crop' },
+    { id: 'mindful-breath',   name: 'Mindful Breath',     category: 'Focus',       duration: 20, img: 'https://images.unsplash.com/photo-1431794062232-2a99a5431c6c?w=500&q=80&auto=format&fit=crop' },
+
+    { id: 'gentle-restore',   name: 'Gentle Restore',     category: 'Relaxation',  duration: 30, img: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=500&q=80&auto=format&fit=crop' },
+    { id: 'pain-ease',        name: 'Pain Ease',          category: 'Pain Relief', duration: 30, img: 'https://images.unsplash.com/photo-1476673160081-cf065607f449?w=500&q=80&auto=format&fit=crop' },
+    { id: 'sleep-drift',      name: 'Sleep Drift',        category: 'Sleep',       duration: 30, img: 'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?w=500&q=80&auto=format&fit=crop' },
+
+    { id: 'swedish-calm',     name: 'Swedish Calm',       category: 'Relaxation',  duration: 45, img: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=500&q=80&auto=format&fit=crop' },
+    { id: 'recovery-flow',    name: 'Recovery Flow',      category: 'Recovery',    duration: 45, img: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=500&q=80&auto=format&fit=crop' },
+
+    { id: 'deep-tissue-flow', name: 'Deep Tissue Flow',   category: 'Pain Relief', duration: 50, img: 'https://images.unsplash.com/photo-1489389944381-3471b5b30f04?w=500&q=80&auto=format&fit=crop' },
+    { id: 'strength-session', name: 'Strength Session',   category: 'Strength',    duration: 50, img: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500&q=80&auto=format&fit=crop' },
+    { id: 'reiki-harmony',    name: 'Reiki Harmony',      category: 'Relaxation',  duration: 50, img: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=500&q=80&auto=format&fit=crop' },
+
+    { id: 'total-unwind',     name: 'Total Unwind',       category: 'Relaxation',  duration: 60, img: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=500&q=80&auto=format&fit=crop' },
+    { id: 'deep-sleep',       name: 'Deep Sleep',         category: 'Sleep',       duration: 60, img: 'https://images.unsplash.com/photo-1532978379173-523e16f371f2?w=500&q=80&auto=format&fit=crop' },
+    { id: 'pain-relief-full', name: 'Pain Relief Full',   category: 'Pain Relief', duration: 60, img: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500&q=80&auto=format&fit=crop' },
+    { id: 'focus-immersion',  name: 'Focus Immersion',    category: 'Focus',       duration: 60, img: 'https://images.unsplash.com/photo-1470813740244-df37b8c1edcb?w=500&q=80&auto=format&fit=crop' },
+
+    { id: 'extended-restore', name: 'Extended Restore',   category: 'Recovery',    duration: 90, img: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=500&q=80&auto=format&fit=crop' },
+    { id: 'deep-meditation',  name: 'Deep Meditation',    category: 'Relaxation',  duration: 90, img: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=500&q=80&auto=format&fit=crop' },
+  ];
+
+  /* ══════════════════════
+     STATE
+  ══════════════════════ */
+  let selectedDuration = 'all';
+  let selectedPlaylist = null;
+  let selectedEnd = 'silence';
+  let isPreviewing = false;
+  let isSessionPlaying = false;
+  let sessionTimer = null;
+  let sessionSecondsLeft = 0;
+  let sessionTotalSeconds = 0;
+
+  /* ══════════════════════
+     VIEW 1: FILTER + GRID
+  ══════════════════════ */
+  function selectFilter(chip) {
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    selectedDuration = chip.dataset.duration;
+    renderPlaylists();
+  }
+
+  function renderPlaylists() {
+    const grid = document.getElementById('playlistGrid');
+    const filtered = selectedDuration === 'all'
+      ? PLAYLISTS
+      : PLAYLISTS.filter(p => p.duration === parseInt(selectedDuration));
+
+    document.getElementById('resultsCount').textContent =
+      `Showing ${filtered.length} playlist${filtered.length !== 1 ? 's' : ''}`;
+
+    if (filtered.length === 0) {
+      grid.innerHTML = '<div class="no-results">No playlists for this duration.</div>';
+      return;
+    }
+
+    grid.innerHTML = filtered.map(p => `
+      <div class="playlist-card" onclick="showDetail('${p.id}')">
+        <div class="bg ${p.bg}"></div>
+        <div class="card-overlay"></div>
+        <div class="cat-tag">${p.category}</div>
+        <div class="dur-tag">${p.duration}m</div>
+        <div class="card-name">${p.name}</div>
+      </div>
+    `).join('');
+  }
+
+  /* ══════════════════════
+     VIEW 2: DETAIL
+  ══════════════════════ */
+  function showDetail(id) {
+    const p = PLAYLISTS.find(x => x.id === id);
+    if (!p) return;
+    selectedPlaylist = p;
+
+    document.getElementById('detailCat').textContent = p.category;
+    document.getElementById('detailName').textContent = p.name;
+    document.getElementById('detailDur').textContent = p.duration + ' minutes';
+
+    // Set background
+    const bg = document.getElementById('detailBg');
+    bg.className = 'detail-bg ' + p.bg;
+
+    // Reset preview button
+    isPreviewing = false;
+    document.getElementById('previewBtn').classList.remove('playing');
+
+    // Reset end option to silence
+    selectedEnd = 'silence';
+    document.querySelectorAll('.end-opt').forEach(o => o.classList.remove('active'));
+    document.querySelector('.end-opt[data-end="silence"]').classList.add('active');
+
+    // Switch views
+    document.getElementById('view-filter').style.display = 'none';
+    document.getElementById('view-playlist').style.display = 'flex';
+  }
+
+  function showFilter() {
+    document.getElementById('view-playlist').style.display = 'none';
+    document.getElementById('view-session').style.display = 'none';
+    document.getElementById('view-filter').style.display = '';
+  }
+
+  function togglePreview() {
+    isPreviewing = !isPreviewing;
+    document.getElementById('previewBtn').classList.toggle('playing', isPreviewing);
+  }
+
+  function selectEnd(btn) {
+    document.querySelectorAll('.end-opt').forEach(o => o.classList.remove('active'));
+    btn.classList.add('active');
+    selectedEnd = btn.dataset.end;
+  }
+
+  /* ══════════════════════
+     VIEW 3: SESSION
+  ══════════════════════ */
+  const END_LABELS = {
+    silence: 'Fade to silence',
+    repeat: 'Loop the playlist',
+    ambient: 'Switch to ambient music',
+  };
+
+  function startSession() {
+    if (!selectedPlaylist) return;
+    const p = selectedPlaylist;
+
+    document.getElementById('sessionName').textContent = p.name;
+    document.getElementById('sessionCat').textContent = p.category + ' · ' + p.duration + ' min';
+    document.getElementById('sessionEndNote').textContent = 'After session: ' + END_LABELS[selectedEnd];
+
+    // Set background
+    const bg = document.getElementById('sessionBg');
+    bg.className = 'session-bg ' + p.bg;
+
+    // Timer
+    sessionTotalSeconds = p.duration * 60;
+    sessionSecondsLeft = sessionTotalSeconds;
+    updateTimerDisplay();
+
+    // Auto-play
+    isSessionPlaying = true;
+    document.getElementById('sessionPlayBtn').classList.add('playing');
+
+    // Switch views
+    document.getElementById('view-playlist').style.display = 'none';
+    document.getElementById('view-session').style.display = 'flex';
+
+    // Start countdown
+    clearInterval(sessionTimer);
+    sessionTimer = setInterval(() => {
+      if (!isSessionPlaying) return;
+      sessionSecondsLeft = Math.max(0, sessionSecondsLeft - 1);
+      updateTimerDisplay();
+      // Update progress
+      const pct = ((sessionTotalSeconds - sessionSecondsLeft) / sessionTotalSeconds) * 100;
+      document.getElementById('sessionProgress').style.width = pct + '%';
+      if (sessionSecondsLeft <= 0) {
+        clearInterval(sessionTimer);
+      }
+    }, 1000);
+  }
+
+  function updateTimerDisplay() {
+    const m = Math.floor(sessionSecondsLeft / 60);
+    const s = sessionSecondsLeft % 60;
+    document.getElementById('sessionTimer').textContent =
+      String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+  }
+
+  function toggleSession() {
+    isSessionPlaying = !isSessionPlaying;
+    document.getElementById('sessionPlayBtn').classList.toggle('playing', isSessionPlaying);
+  }
+
+  function stopSession() {
+    clearInterval(sessionTimer);
+    isSessionPlaying = false;
+    document.getElementById('sessionProgress').style.width = '0%';
+
+    // Go back to detail view
+    document.getElementById('view-session').style.display = 'none';
+    document.getElementById('view-playlist').style.display = 'flex';
+  }
+
+  /* ══════════════════════
+     INIT
+  ══════════════════════ */
+  renderPlaylists();
+</script>
+</body>
+</html>

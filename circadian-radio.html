@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Circadian Radio — Myndstream</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, sans-serif;
+      background: #0b0c16;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .top-banner {
+      background: #12131f;
+      text-align: center;
+      padding: 7px 16px;
+      font-size: 11.5px;
+      color: #999;
+      border-bottom: 1px solid #1e1f30;
+      flex-shrink: 0;
+    }
+    .top-banner a { color: #6ecfe0; text-decoration: none; }
+
+    .layout { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: 210px;
+      background: #0d0e1b;
+      border-right: 1px solid #1a1b2c;
+      display: flex; flex-direction: column;
+      overflow-y: auto; flex-shrink: 0;
+    }
+    .sidebar::-webkit-scrollbar { width: 0; }
+
+    .logo {
+      display: flex; align-items: center;
+      padding: 18px 16px 14px;
+      text-decoration: none;
+    }
+    .logo-img { height: 22px; width: auto; display: block; }
+
+    .nav-list { list-style: none; padding: 4px 0; }
+    .nav-list a {
+      display: flex; align-items: center; gap: 11px;
+      padding: 9px 16px;
+      color: #7a7b94; font-size: 13px; text-decoration: none;
+      transition: color 0.15s, background 0.15s;
+    }
+    .nav-list a:hover { color: #d0d1e8; background: #161727; }
+    .nav-list a.active { color: #7dd3e8; background: #161727; }
+    .nav-list a .icon { font-size: 15px; width: 18px; text-align: center; }
+
+    .sidebar-divider { height: 1px; background: #1a1b2c; margin: 8px 14px; }
+    .sidebar-section-label {
+      padding: 8px 16px 3px;
+      font-size: 9.5px; color: #4a4b62;
+      text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;
+    }
+
+    /* ── MAIN ── */
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+    .topbar {
+      display: flex; justify-content: flex-end; align-items: center; gap: 16px;
+      padding: 11px 22px;
+      background: #0d0e1b; border-bottom: 1px solid #1a1b2c; flex-shrink: 0;
+    }
+    .topbar-device { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #6a7090; }
+    .account-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: #1a1b2e; border: 1px solid #26273e; border-radius: 18px;
+      padding: 6px 14px; cursor: pointer; color: #c0c1d8; font-size: 12.5px;
+      transition: background 0.15s;
+    }
+    .account-btn:hover { background: #22233a; }
+    .account-btn::after { content: '▾'; font-size: 10px; color: #888; }
+
+    /* ════════════════════════════
+       STATION SELECTION VIEW
+    ════════════════════════════ */
+    #view-stations {
+      flex: 1; overflow-y: auto; padding: 28px 28px 48px;
+    }
+    #view-stations::-webkit-scrollbar { width: 5px; }
+    #view-stations::-webkit-scrollbar-thumb { background: #22233a; border-radius: 3px; }
+
+    .page-back {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: #6a7090; font-size: 12px; text-decoration: none;
+      margin-bottom: 14px; transition: color 0.15s;
+    }
+    .page-back:hover { color: #c0c1d8; }
+
+    .page-title { font-size: 26px; font-weight: 700; letter-spacing: -0.3px; }
+    .page-subtitle { font-size: 13px; color: #6a7090; margin-top: 5px; margin-bottom: 30px; line-height: 1.5; }
+
+    /* Station cards — square tiles, wrap to 2-col on narrow */
+    .stations-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 14px;
+    }
+
+    .station-card {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      cursor: pointer;
+      aspect-ratio: 1 / 1;
+      transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s;
+    }
+    .station-card:hover { transform: translateY(-4px) scale(1.01); filter: brightness(1.08); }
+
+    .station-img {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+    .station-card:hover .station-img { transform: scale(1.04); }
+
+    /* Dark gradient overlay so text is readable */
+    .station-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(
+        180deg,
+        rgba(0,0,0,0.1) 0%,
+        rgba(0,0,0,0.25) 40%,
+        rgba(0,0,0,0.75) 75%,
+        rgba(0,0,0,0.9) 100%
+      );
+    }
+
+    .station-content {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 20px;
+    }
+
+    .live-pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 20px; padding: 4px 10px;
+      font-size: 10px; font-weight: 700; letter-spacing: 1px;
+      width: fit-content; margin-bottom: 10px;
+    }
+    .live-pill .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #4ade80;
+      animation: pulse-dot 1.4s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.35; transform: scale(0.75); }
+    }
+
+    .station-name {
+      font-size: 22px; font-weight: 800;
+      letter-spacing: -0.3px;
+      line-height: 1.1;
+    }
+
+    /* ════════════════════════════
+       RADIO PLAYER VIEW
+    ════════════════════════════ */
+    #view-player {
+      flex: 1; display: none; flex-direction: column; overflow: hidden;
+      position: relative;
+    }
+
+    .player-bg-img {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      filter: blur(28px) brightness(0.35);
+      transform: scale(1.08); /* avoids blur edge artifacts */
+      transition: opacity 0.6s ease;
+    }
+
+    .player-vignette {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at center, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.6) 100%);
+    }
+
+    .player-inner {
+      position: relative; z-index: 2;
+      flex: 1; display: flex; flex-direction: column;
+      padding: 20px 28px 32px;
+    }
+
+    .player-back {
+      display: inline-flex; align-items: center; gap: 7px;
+      color: rgba(255,255,255,0.65); font-size: 12px;
+      background: none; border: none; cursor: pointer;
+      padding: 0; margin-bottom: 0;
+      transition: color 0.15s; font-family: inherit;
+    }
+    .player-back:hover { color: rgba(255,255,255,0.95); }
+
+    .player-center {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+    }
+
+    .player-live-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,0.14); backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.22);
+      border-radius: 20px; padding: 5px 14px;
+      font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
+      margin-bottom: 20px;
+    }
+    .player-live-pill .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #4ade80;
+      animation: pulse-dot 1.4s ease-in-out infinite;
+    }
+
+    /* Waveform */
+    .waveform {
+      display: flex; align-items: center; gap: 3px;
+      height: 52px; margin-bottom: 26px;
+    }
+    .wave-bar {
+      width: 3px; border-radius: 3px;
+      background: rgba(255,255,255,0.7);
+      transform-origin: bottom;
+      animation: wave-anim 1.1s ease-in-out infinite alternate;
+    }
+    .wave-bar:nth-child(1)  { height: 12px; animation-delay: 0.00s; }
+    .wave-bar:nth-child(2)  { height: 26px; animation-delay: 0.10s; }
+    .wave-bar:nth-child(3)  { height: 40px; animation-delay: 0.20s; }
+    .wave-bar:nth-child(4)  { height: 50px; animation-delay: 0.30s; }
+    .wave-bar:nth-child(5)  { height: 38px; animation-delay: 0.15s; }
+    .wave-bar:nth-child(6)  { height: 52px; animation-delay: 0.05s; }
+    .wave-bar:nth-child(7)  { height: 30px; animation-delay: 0.40s; }
+    .wave-bar:nth-child(8)  { height: 46px; animation-delay: 0.22s; }
+    .wave-bar:nth-child(9)  { height: 52px; animation-delay: 0.12s; }
+    .wave-bar:nth-child(10) { height: 36px; animation-delay: 0.35s; }
+    .wave-bar:nth-child(11) { height: 50px; animation-delay: 0.08s; }
+    .wave-bar:nth-child(12) { height: 28px; animation-delay: 0.28s; }
+    .wave-bar:nth-child(13) { height: 42px; animation-delay: 0.18s; }
+    .wave-bar:nth-child(14) { height: 20px; animation-delay: 0.45s; }
+    .wave-bar:nth-child(15) { height: 34px; animation-delay: 0.03s; }
+    .wave-bar.paused {
+      animation-play-state: paused;
+      height: 3px !important;
+      transition: height 0.4s ease;
+    }
+    @keyframes wave-anim {
+      from { transform: scaleY(0.25); opacity: 0.4; }
+      to   { transform: scaleY(1);    opacity: 1; }
+    }
+
+    .player-station-name {
+      font-size: 38px; font-weight: 800;
+      letter-spacing: -0.5px; margin-bottom: 10px;
+    }
+    .player-mood {
+      font-size: 14px; color: rgba(255,255,255,0.6);
+      margin-bottom: 38px; line-height: 1.6;
+      max-width: 320px;
+    }
+
+    .big-play-btn {
+      width: 76px; height: 76px;
+      background: rgba(255,255,255,0.95);
+      border-radius: 50%; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.15s, background 0.15s;
+      margin-bottom: 44px; flex-shrink: 0;
+    }
+    .big-play-btn:hover { transform: scale(1.07); background: #fff; }
+    .big-play-btn svg { width: 28px; height: 28px; fill: #111; }
+    .big-play-btn .pause-icon { display: none; }
+    .big-play-btn.playing .play-icon { display: none; }
+    .big-play-btn.playing .pause-icon { display: block; }
+
+    /* Other stations row */
+    .also-on {
+      display: flex; gap: 10px; align-items: center;
+    }
+    .also-on-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 1px;
+      color: rgba(255,255,255,0.4); text-transform: uppercase;
+      margin-right: 4px; white-space: nowrap;
+    }
+    .also-pill {
+      display: flex; align-items: center; gap: 7px;
+      background: rgba(255,255,255,0.1); backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 24px; padding: 7px 14px;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .also-pill:hover { background: rgba(255,255,255,0.18); }
+    .also-pill-img {
+      width: 22px; height: 22px; border-radius: 50%;
+      object-fit: cover; flex-shrink: 0;
+    }
+    .also-pill-name { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.8); }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #22233a; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<div class="top-banner">
+  From Apple: enjoy your free trial. Explore our <a href="#">app</a>
+</div>
+
+<div class="layout">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <nav class="sidebar">
+    <a href="index.html" class="logo">
+      <img src="assets/myndstream.svg" alt="Myndstream" class="logo-img" />
+    </a>
+
+    <ul class="nav-list">
+      <li><a href="index.html"><span class="icon">⌂</span> Home</a></li>
+      <li><a href="#"><span class="icon">⌕</span> Search</a></li>
+      <li><a href="#"><span class="icon">♡</span> My Favorites</a></li>
+      <li><a href="#"><span class="icon">♪</span> Music Shaker</a></li>
+      <li><a href="#"><span class="icon">◎</span> Zones</a></li>
+    </ul>
+
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section-label">Features</div>
+    <ul class="nav-list">
+      <li><a href="circadian-radio.html" class="active"><span class="icon">🌗</span> Circadian Radio</a></li>
+      <li><a href="session-filter.html"><span class="icon">⏱</span> Treatment Timer</a></li>
+    </ul>
+
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section-label">Your Plan</div>
+    <ul class="nav-list">
+      <li><a href="#"><span class="icon">📱</span> Mobile Treatments</a></li>
+    </ul>
+  </nav>
+
+  <!-- ═══ MAIN ═══ -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-device"><span>🎧</span> Listening on Harriet's iPhone</div>
+      <button class="account-btn">Account</button>
+    </div>
+
+    <!-- ── STATION SELECTION ── -->
+    <div id="view-stations">
+      <a href="index.html" class="page-back">← Back to Home</a>
+      <h1 class="page-title">Circadian Radio</h1>
+      <p class="page-subtitle">Three always-on stations, tuned to every state of mind.<br>Just press play.</p>
+
+      <div class="stations-grid">
+
+        <!-- DRIFT -->
+        <div class="station-card" onclick="showPlayer('drift')">
+          <img class="station-img"
+               src="https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=600&q=80&auto=format&fit=crop"
+               alt="Drift" />
+          <div class="station-overlay"></div>
+          <div class="station-content">
+            <div class="live-pill"><div class="dot"></div> LIVE</div>
+            <div class="station-name">Drift</div>
+          </div>
+        </div>
+
+        <!-- BALANCE -->
+        <div class="station-card" onclick="showPlayer('balance')">
+          <img class="station-img"
+               src="https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&q=80&auto=format&fit=crop"
+               alt="Balance" />
+          <div class="station-overlay"></div>
+          <div class="station-content">
+            <div class="live-pill"><div class="dot"></div> LIVE</div>
+            <div class="station-name">Balance</div>
+          </div>
+        </div>
+
+        <!-- UPLIFTING -->
+        <div class="station-card" onclick="showPlayer('uplifting')">
+          <img class="station-img"
+               src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80&auto=format&fit=crop"
+               alt="Uplifting" />
+          <div class="station-overlay"></div>
+          <div class="station-content">
+            <div class="live-pill"><div class="dot"></div> LIVE</div>
+            <div class="station-name">Uplifting</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── RADIO PLAYER ── -->
+    <div id="view-player">
+      <img class="player-bg-img" id="playerBgImg" src="" alt="" />
+      <div class="player-vignette"></div>
+
+      <div class="player-inner">
+        <button class="player-back" onclick="showStations()">← Circadian Radio</button>
+
+        <div class="player-center">
+          <div class="player-live-pill"><div class="dot"></div> LIVE</div>
+
+          <div class="waveform" id="waveform">
+            <div class="wave-bar"></div><div class="wave-bar"></div>
+            <div class="wave-bar"></div><div class="wave-bar"></div>
+            <div class="wave-bar"></div><div class="wave-bar"></div>
+            <div class="wave-bar"></div><div class="wave-bar"></div>
+            <div class="wave-bar"></div><div class="wave-bar"></div>
+            <div class="wave-bar"></div><div class="wave-bar"></div>
+            <div class="wave-bar"></div><div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+          </div>
+
+          <div class="player-station-name" id="playerName">Drift</div>
+
+          <button class="big-play-btn playing" id="bigPlayBtn" onclick="toggleRadio()">
+            <svg class="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <svg class="pause-icon" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+          </button>
+
+          <div class="also-on">
+            <span class="also-on-label">Also on</span>
+            <div class="also-pill" id="alsoPill1" onclick="switchStation(0)">
+              <img class="also-pill-img" id="alsoImg1" src="" alt="" />
+              <span class="also-pill-name" id="alsoName1"></span>
+            </div>
+            <div class="also-pill" id="alsoPill2" onclick="switchStation(1)">
+              <img class="also-pill-img" id="alsoImg2" src="" alt="" />
+              <span class="also-pill-name" id="alsoName2"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  const STATIONS = {
+    drift: {
+      id: 'drift',
+      name: 'Drift',
+      desc: 'Deep, meditative sounds for rest, sleep and letting go',
+      img: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=600&q=80&auto=format&fit=crop',
+    },
+    balance: {
+      id: 'balance',
+      name: 'Balance',
+      desc: 'Calm, centred harmonics to restore equilibrium and focus',
+      img: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&q=80&auto=format&fit=crop',
+    },
+    uplifting: {
+      id: 'uplifting',
+      name: 'Uplifting',
+      desc: 'Energising, positive frequencies to brighten and motivate',
+      img: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80&auto=format&fit=crop',
+    },
+  };
+
+  const ORDER = ['drift', 'balance', 'uplifting'];
+  let currentId = null;
+  let isPlaying = true;
+
+  function showPlayer(id) {
+    currentId = id;
+    const s = STATIONS[id];
+
+    document.getElementById('playerName').textContent = s.name;
+    document.getElementById('playerBgImg').src = s.img;
+
+    // Populate "Also on" pills with the other two stations
+    const others = ORDER.filter(k => k !== id);
+    ['alsoImg1','alsoImg2'].forEach((imgId, i) => {
+      document.getElementById(imgId).src = STATIONS[others[i]].img;
+    });
+    ['alsoName1','alsoName2'].forEach((nameId, i) => {
+      document.getElementById(nameId).textContent = STATIONS[others[i]].name;
+    });
+    // Store other IDs for switching
+    document.getElementById('alsoPill1').dataset.stationId = others[0];
+    document.getElementById('alsoPill2').dataset.stationId = others[1];
+
+    document.getElementById('view-stations').style.display = 'none';
+    document.getElementById('view-player').style.display = 'flex';
+
+    isPlaying = true;
+    document.getElementById('bigPlayBtn').classList.add('playing');
+    setWavePlaying(true);
+  }
+
+  function switchStation(pillIndex) {
+    const pill = document.getElementById(`alsoPill${pillIndex + 1}`);
+    showPlayer(pill.dataset.stationId);
+  }
+
+  function showStations() {
+    document.getElementById('view-stations').style.display = '';
+    document.getElementById('view-player').style.display = 'none';
+  }
+
+  function toggleRadio() {
+    isPlaying = !isPlaying;
+    document.getElementById('bigPlayBtn').classList.toggle('playing', isPlaying);
+    setWavePlaying(isPlaying);
+  }
+
+  function setWavePlaying(playing) {
+    document.querySelectorAll('.wave-bar').forEach(b => b.classList.toggle('paused', !playing));
+  }
+
+  /* Nav highlight */
+  document.querySelectorAll('.nav-list a').forEach(link => {
+    link.addEventListener('click', function(e) {
+      if (this.href.includes('circadian')) return;
+      e.preventDefault();
+      document.querySelectorAll('.nav-list a').forEach(l => l.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>
