@@ -529,10 +529,11 @@
   /* Nav highlight */
   document.querySelectorAll('.nav-list a').forEach(link => {
     link.addEventListener('click', function(e) {
-      if (this.href.includes('circadian')) return;
-      e.preventDefault();
-      document.querySelectorAll('.nav-list a').forEach(l => l.classList.remove('active'));
-      this.classList.add('active');
+      if (this.getAttribute('href') === '#') {
+        e.preventDefault();
+        document.querySelectorAll('.nav-list a').forEach(l => l.classList.remove('active'));
+        this.classList.add('active');
+      }
     });
   });
 </script>

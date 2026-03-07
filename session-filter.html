@@ -528,8 +528,8 @@
   ══════════════════════ */
   /* Category → image mapping */
   const CAT_IMAGES = {
-    'Relaxation':  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&q=80&auto=format&fit=crop',
-    'Focus':       'https://images.unsplash.com/photo-1470813740244-df37b8c1edcb?w=500&q=80&auto=format&fit=crop',
+    'Relaxation':  'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=500&q=80&auto=format&fit=crop',
+    'Focus':       'https://images.unsplash.com/photo-1431794062232-2a99a5431c6c?w=500&q=80&auto=format&fit=crop',
     'Recovery':    'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=500&q=80&auto=format&fit=crop',
     'Pain Relief': 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=500&q=80&auto=format&fit=crop',
     'Sleep':       'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?w=500&q=80&auto=format&fit=crop',
@@ -537,8 +537,8 @@
   };
 
   const PLAYLISTS = [
-    { id: 'quick-calm',       name: 'Quick Calm',         category: 'Relaxation',  duration: 15, img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&q=80&auto=format&fit=crop' },
-    { id: 'express-focus',    name: 'Express Focus',      category: 'Focus',       duration: 15, img: 'https://images.unsplash.com/photo-1470813740244-df37b8c1edcb?w=500&q=80&auto=format&fit=crop' },
+    { id: 'quick-calm',       name: 'Quick Calm',         category: 'Relaxation',  duration: 15, img: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=500&q=80&auto=format&fit=crop' },
+    { id: 'express-focus',    name: 'Express Focus',      category: 'Focus',       duration: 15, img: 'https://images.unsplash.com/photo-1431794062232-2a99a5431c6c?w=500&q=80&auto=format&fit=crop' },
 
     { id: 'morning-restore',  name: 'Morning Restore',    category: 'Recovery',    duration: 20, img: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=500&q=80&auto=format&fit=crop' },
     { id: 'tension-melt',     name: 'Tension Melt',       category: 'Pain Relief', duration: 20, img: 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=500&q=80&auto=format&fit=crop' },
@@ -558,7 +558,7 @@
     { id: 'total-unwind',     name: 'Total Unwind',       category: 'Relaxation',  duration: 60, img: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=500&q=80&auto=format&fit=crop' },
     { id: 'deep-sleep',       name: 'Deep Sleep',         category: 'Sleep',       duration: 60, img: 'https://images.unsplash.com/photo-1532978379173-523e16f371f2?w=500&q=80&auto=format&fit=crop' },
     { id: 'pain-relief-full', name: 'Pain Relief Full',   category: 'Pain Relief', duration: 60, img: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500&q=80&auto=format&fit=crop' },
-    { id: 'focus-immersion',  name: 'Focus Immersion',    category: 'Focus',       duration: 60, img: 'https://images.unsplash.com/photo-1470813740244-df37b8c1edcb?w=500&q=80&auto=format&fit=crop' },
+    { id: 'focus-immersion',  name: 'Focus Immersion',    category: 'Focus',       duration: 60, img: 'https://images.unsplash.com/photo-1431794062232-2a99a5431c6c?w=500&q=80&auto=format&fit=crop' },
 
     { id: 'extended-restore', name: 'Extended Restore',   category: 'Recovery',    duration: 90, img: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=500&q=80&auto=format&fit=crop' },
     { id: 'deep-meditation',  name: 'Deep Meditation',    category: 'Relaxation',  duration: 90, img: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=500&q=80&auto=format&fit=crop' },
@@ -602,7 +602,7 @@
 
     grid.innerHTML = filtered.map(p => `
       <div class="playlist-card" onclick="showDetail('${p.id}')">
-        <div class="bg ${p.bg}"></div>
+        <img class="card-img" src="${p.img}" alt="${p.name}" />
         <div class="card-overlay"></div>
         <div class="cat-tag">${p.category}</div>
         <div class="dur-tag">${p.duration}m</div>
