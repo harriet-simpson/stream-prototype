@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Myndstream</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, sans-serif;
+      background: #0b0c16;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── TOP BANNER ── */
+    .top-banner {
+      background: #12131f;
+      text-align: center;
+      padding: 7px 16px;
+      font-size: 11.5px;
+      color: #999;
+      border-bottom: 1px solid #1e1f30;
+      flex-shrink: 0;
+      letter-spacing: 0.1px;
+    }
+    .top-banner a { color: #6ecfe0; text-decoration: none; }
+    .top-banner a:hover { text-decoration: underline; }
+
+    /* ── LAYOUT ── */
+    .layout {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: 210px;
+      background: #0d0e1b;
+      border-right: 1px solid #1a1b2c;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+    .sidebar::-webkit-scrollbar { width: 0; }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 18px 16px 14px;
+    }
+    .logo-mark {
+      width: 30px; height: 30px;
+      background: linear-gradient(135deg, #5b9ef0 0%, #7b6cf8 100%);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-mark svg { width: 16px; height: 16px; fill: #fff; }
+    .logo-text {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      color: #fff;
+    }
+
+    .nav-list { list-style: none; padding: 4px 0; }
+    .nav-list a {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 9px 16px;
+      color: #7a7b94;
+      font-size: 13px;
+      text-decoration: none;
+      border-radius: 0;
+      transition: color 0.15s, background 0.15s;
+    }
+    .nav-list a:hover { color: #d0d1e8; background: #161727; }
+    .nav-list a.active { color: #7dd3e8; background: #161727; }
+    .nav-list a .icon { font-size: 15px; width: 18px; text-align: center; opacity: 0.9; }
+
+    .sidebar-divider { height: 1px; background: #1a1b2c; margin: 8px 14px; }
+
+    .sidebar-section-label {
+      padding: 8px 16px 3px;
+      font-size: 9.5px;
+      color: #4a4b62;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      font-weight: 600;
+    }
+
+    /* Sidebar promo card */
+    .sidebar-promo {
+      margin: 10px 12px;
+      background: linear-gradient(160deg, #1a2d4a 0%, #0e1c30 100%);
+      border-radius: 10px;
+      padding: 11px;
+      overflow: hidden;
+    }
+    .sidebar-promo-label {
+      font-size: 10px;
+      color: #7a8aaa;
+      margin-bottom: 7px;
+      line-height: 1.4;
+    }
+    .sidebar-promo-thumb {
+      width: 100%;
+      height: 66px;
+      background: linear-gradient(135deg, #254a62 0%, #172d3f 100%);
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .sidebar-featured {
+      margin: 4px 12px 12px;
+      background: linear-gradient(160deg, #1e2a4a 0%, #12192e 100%);
+      border-radius: 10px;
+      padding: 10px;
+    }
+    .sidebar-featured-title { font-size: 11px; color: #b0b8d0; font-weight: 600; }
+    .sidebar-featured-sub { font-size: 10px; color: #6a7090; margin-top: 3px; }
+
+    /* ── MAIN CONTENT ── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: #0d0e1b;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 16px;
+      padding: 11px 22px;
+      background: #0d0e1b;
+      border-bottom: 1px solid #1a1b2c;
+      flex-shrink: 0;
+    }
+    .topbar-device {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      color: #6a7090;
+    }
+    .topbar-device span { font-size: 13px; }
+    .topbar-plan {
+      font-size: 11.5px;
+      color: #6a7090;
+    }
+    .account-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #1a1b2e;
+      border: 1px solid #26273e;
+      border-radius: 18px;
+      padding: 6px 14px;
+      cursor: pointer;
+      color: #c0c1d8;
+      font-size: 12.5px;
+      transition: background 0.15s;
+    }
+    .account-btn:hover { background: #22233a; }
+    .account-btn::after { content: '▾'; font-size: 10px; color: #888; }
+
+    .scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 24px 40px;
+    }
+    .scroll-area::-webkit-scrollbar { width: 5px; }
+    .scroll-area::-webkit-scrollbar-track { background: transparent; }
+    .scroll-area::-webkit-scrollbar-thumb { background: #22233a; border-radius: 3px; }
+
+    /* ── GREETING ── */
+    .greeting { font-size: 26px; font-weight: 700; margin-bottom: 18px; letter-spacing: -0.3px; }
+
+    /* ── FEATURED TRACK ── */
+    .featured-track {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: linear-gradient(130deg, #1c3d52 0%, #0e2030 55%, #1a2f45 100%);
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: filter 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+    .featured-track::after {
+      content: '';
+      position: absolute; top: 0; right: 0;
+      width: 160px; height: 100%;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='80'%3E%3Crect width='160' height='80' fill='%230a2030' rx='0'/%3E%3Ccircle cx='120' cy='20' r='50' fill='%23163040' opacity='0.5'/%3E%3C/svg%3E") center/cover no-repeat;
+      opacity: 0.6;
+    }
+    .featured-track:hover { filter: brightness(1.08); }
+    .featured-thumb {
+      width: 62px; height: 62px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #2a6878 0%, #163645 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+      flex-shrink: 0;
+      z-index: 1;
+    }
+    .featured-info { flex: 1; z-index: 1; }
+    .featured-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .featured-meta { font-size: 12px; color: #8090a8; }
+    .play-btn {
+      width: 38px; height: 38px;
+      background: #fff;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      z-index: 1;
+      transition: transform 0.15s;
+      border: none;
+    }
+    .play-btn:hover { transform: scale(1.08); }
+    .play-btn svg { width: 14px; height: 14px; fill: #111; margin-left: 2px; }
+
+    /* ── NOW PLAYING ── */
+    .now-playing {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #161727;
+      border-radius: 10px;
+      padding: 11px 14px;
+      margin-bottom: 26px;
+    }
+    .np-title { font-size: 13px; font-weight: 500; min-width: 0; flex-shrink: 0; }
+    .np-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .ctrl {
+      background: none; border: none;
+      color: #888; cursor: pointer;
+      font-size: 15px; padding: 3px;
+      display: flex; align-items: center; justify-content: center;
+      transition: color 0.15s;
+    }
+    .ctrl:hover { color: #fff; }
+    .ctrl.main-ctrl { font-size: 20px; color: #ddd; }
+    .progress-wrap {
+      flex: 1;
+      height: 4px;
+      background: #252640;
+      border-radius: 2px;
+      cursor: pointer;
+      position: relative;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #5bacd4, #7b6cf8);
+      border-radius: 2px;
+      width: 28%;
+      transition: width 0.3s linear;
+    }
+    .vol-btn { background: none; border: none; color: #888; cursor: pointer; font-size: 15px; flex-shrink: 0; transition: color 0.15s; }
+    .vol-btn:hover { color: #fff; }
+
+    /* ── SECTION ── */
+    .section { margin-bottom: 28px; }
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #bbbcd4;
+      margin-bottom: 12px;
+      letter-spacing: 0.2px;
+    }
+
+    /* ── CARD GRID ── */
+    .card-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .card-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+
+    .music-card {
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      position: relative;
+      aspect-ratio: 1 / 0.72;
+      transition: transform 0.15s, filter 0.15s;
+    }
+    .music-card:hover { transform: scale(1.02); filter: brightness(1.1); }
+    .music-card .bg {
+      position: absolute; inset: 0;
+      border-radius: 10px;
+    }
+    .music-card .label {
+      position: absolute;
+      bottom: 10px; left: 11px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #fff;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.7);
+      line-height: 1.3;
+    }
+    .music-card .sublabel {
+      position: absolute;
+      bottom: 22px; left: 11px;
+      font-size: 10px;
+      color: rgba(255,255,255,0.6);
+    }
+    .lock-badge {
+      position: absolute;
+      top: 8px; right: 8px;
+      font-size: 14px;
+      opacity: 0.8;
+    }
+    .span-2 { grid-column: span 2; }
+
+    /* card background helpers */
+    .bg-relax        { background: linear-gradient(160deg,#1f5c3a 0%,#0f2e1e 100%); }
+    .bg-unwind       { background: linear-gradient(150deg,#6b3a1f 0%,#3a1a0a 100%); }
+    .bg-invigorate   { background: linear-gradient(140deg,#1a4f3a 0%,#0d2820 100%); }
+    .bg-mood         { background: linear-gradient(140deg,#4a1858 0%,#280e30 100%); }
+    .bg-focus        { background: linear-gradient(140deg,#163060 0%,#0b1a38 100%); }
+    .bg-sleep        { background: linear-gradient(140deg,#111f50 0%,#090e2a 100%); }
+    .bg-recovery     { background: linear-gradient(140deg,#1a4830 0%,#0d2618 100%); }
+    .bg-strength     { background: linear-gradient(140deg,#4a2a10 0%,#2a1508 100%); }
+    .bg-pain         { background: linear-gradient(140deg,#501818 0%,#2a0c0c 100%); }
+    .bg-tension      { background: linear-gradient(140deg,#204856 0%,#10252c 100%); }
+    .bg-reiki        { background: linear-gradient(140deg,#3a2060 0%,#1e1030 100%); }
+    .bg-frequency    { background: linear-gradient(140deg,#185060 0%,#0c2830 100%); }
+    .bg-meditation   { background: linear-gradient(140deg,#223c16 0%,#111e0b 100%); }
+    .bg-breathwork   { background: linear-gradient(140deg,#163850 0%,#0b1c28 100%); }
+    .bg-nature       { background: linear-gradient(140deg,#1f4825 0%,#0f2412 100%); }
+    .bg-psychedelic  { background: linear-gradient(140deg,#2a1050 0%,#160828 100%); }
+    .bg-gentle       { background: linear-gradient(140deg,#163828 0%,#0b1c14 100%); }
+    .bg-steady       { background: linear-gradient(140deg,#302c18 0%,#18160c 100%); }
+    .bg-active       { background: linear-gradient(140deg,#182858 0%,#0c1430 100%); }
+    .bg-coast        { background: linear-gradient(140deg,#2a1818 0%,#160c0c 100%); }
+    .bg-forest       { background: linear-gradient(140deg,#262618 0%,#13130c 100%); }
+    .bg-rainforest   { background: linear-gradient(140deg,#183c20 0%,#0c1e10 100%); }
+    .bg-solstice     { background: linear-gradient(140deg,#182040 0%,#0c1020 100%); }
+    .bg-chill        { background: linear-gradient(140deg,#181828 0%,#0c0c14 100%); }
+
+    /* ── BRAND GRID ── */
+    .brand-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .brand-card {
+      background: #161727;
+      border-radius: 10px;
+      height: 58px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s;
+      overflow: hidden;
+      padding: 8px;
+    }
+    .brand-card:hover { background: #202135; }
+    .brand-name {
+      font-weight: 700;
+      color: #fff;
+      font-size: 13px;
+      letter-spacing: 1px;
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    /* ── DURATION ── */
+    .dur-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .dur-btn {
+      background: #161727;
+      border: 1px solid #22233a;
+      border-radius: 10px;
+      padding: 15px 10px;
+      cursor: pointer;
+      color: #b0b1cc;
+      font-size: 12.5px;
+      text-align: center;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .dur-btn:hover { background: #1e1f34; color: #fff; }
+    .dur-btn.active {
+      background: linear-gradient(135deg, #1e4a5a 0%, #122838 100%);
+      border-color: #3a8aaa;
+      color: #fff;
+    }
+
+    /* ── EXPLORE MORE ── */
+    .explore-btn {
+      display: block;
+      margin: 12px auto 0;
+      background: none;
+      border: 1px solid #22233a;
+      color: #6a7090;
+      padding: 9px 24px;
+      border-radius: 18px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .explore-btn:hover { color: #c0c1d8; border-color: #3a3b58; }
+  </style>
+</head>
+<body>
+
+<!-- TOP BANNER -->
+<div class="top-banner">
+  From Apple: enjoy your free trial. Explore our <a href="#">app</a>
+</div>
+
+<div class="layout">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <nav class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18A9 9 0 0 0 12 3zm-1 13V8l7 4-7 4z"/></svg>
+      </div>
+      <span class="logo-text">Myndstream</span>
+    </div>
+
+    <ul class="nav-list">
+      <li><a href="#" class="active"><span class="icon">⌂</span> Home</a></li>
+      <li><a href="#"><span class="icon">⌕</span> Search</a></li>
+      <li><a href="#"><span class="icon">♡</span> My Favorites</a></li>
+      <li><a href="#"><span class="icon">♪</span> Music Shaker</a></li>
+      <li><a href="#"><span class="icon">◎</span> Zones</a></li>
+    </ul>
+
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section-label">Your Plan</div>
+    <ul class="nav-list">
+      <li><a href="#"><span class="icon">📱</span> Mobile Treatments</a></li>
+    </ul>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-promo">
+      <div class="sidebar-promo-label">Elevate your streaming experience</div>
+      <div class="sidebar-promo-thumb">🎵</div>
+    </div>
+
+    <div class="sidebar-section-label">Featured Play</div>
+    <div class="sidebar-featured">
+      <div class="sidebar-featured-title">Featured Play (175+)</div>
+      <div class="sidebar-featured-sub">Premium soundscapes</div>
+    </div>
+  </nav>
+
+  <!-- ═══ MAIN ═══ -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-device"><span>🎧</span> Listening on Harriet's iPhone</div>
+      <div class="topbar-plan">Mobile Treatments</div>
+      <button class="account-btn">Account</button>
+    </div>
+
+    <div class="scroll-area">
+
+      <!-- Greeting -->
+      <h1 class="greeting">Hello Harriet</h1>
+
+      <!-- Featured Track -->
+      <div class="featured-track" onclick="toggleFeatured(this)">
+        <div class="featured-thumb">🧠</div>
+        <div class="featured-info">
+          <div class="featured-title">Pain Relief (60m)</div>
+          <div class="featured-meta">1 hr 12 min</div>
+        </div>
+        <button class="play-btn" id="featuredPlayBtn">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+      </div>
+
+      <!-- Now Playing -->
+      <div class="now-playing">
+        <div class="np-title">Elevated Atmosphere</div>
+        <div class="np-controls">
+          <button class="ctrl" onclick="prevTrack()" title="Previous">⏮</button>
+          <button class="ctrl main-ctrl" id="mainPlayBtn" onclick="togglePlayPause()" title="Play/Pause">⏸</button>
+          <button class="ctrl" onclick="nextTrack()" title="Next">⏭</button>
+        </div>
+        <div class="progress-wrap" onclick="seekProgress(event, this)">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <button class="vol-btn" id="volBtn" onclick="toggleMute()" title="Volume">🔊</button>
+      </div>
+
+      <!-- Guest Personalization -->
+      <div class="section">
+        <div class="section-title">Guest Personalization</div>
+        <div class="card-grid-2">
+          <div class="music-card" onclick="cardClick(this)">
+            <div class="bg bg-relax"></div>
+            <div class="label">Relax</div>
+          </div>
+          <div class="music-card" onclick="cardClick(this)">
+            <div class="bg bg-unwind"></div>
+            <div class="label">Unwind</div>
+          </div>
+          <div class="music-card" onclick="cardClick(this)">
+            <div class="bg bg-invigorate"></div>
+            <div class="label">Invigorating</div>
+          </div>
+          <div class="music-card" onclick="cardClick(this)">
+            <div class="bg bg-mood"></div>
+            <div class="label">Mood Boosting</div>
+          </div>
+          <div class="music-card span-2" onclick="cardClick(this)">
+            <div class="bg bg-focus"></div>
+            <div class="label">Focus</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Therapeutic Personalization -->
+      <div class="section">
+        <div class="section-title">Therapeutic Personalization</div>
+        <div class="card-grid-2">
+          <div class="music-card" onclick="cardClick(this)">
+            <div class="bg bg-sleep"></div>
+            <div class="label">Sleep</div>
+          </div>
+          <div class="music-card" onclick="cardClick(this)">
+            <div class="bg bg-recovery"></div>
+            <div class="label">Recovery</div>
+          </div>
+          <div class="music-card" onclick="cardClick(this)">
+            <div class="bg bg-strength"></div>
+            <div class="label">Strength &amp;<br>Mobility</div>
+          </div>
+          <div class="music-card" onclick="cardClick(this)">
+            <div class="bg bg-pain"></div>
+            <div class="label">Pain Reduction</div>
+          </div>
+          <div class="music-card span-2" onclick="cardClick(this)">
+            <div class="bg bg-tension"></div>
+            <div class="label">Tension Release</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Holistic -->
+      <div class="section">
+        <div class="section-title">Holistic</div>
+        <div class="card-grid-2">
+          <div class="music-card" onclick="cardClick(this)">
+            <div class="bg bg-reiki"></div>
+            <div class="label">Reiki</div>
+          </div>
+          <div class="music-card" onclick="cardClick(this)">
+            <div class="bg bg-frequency"></div>
+            <div class="label">Frequency</div>
+          </div>
+          <div class="music-card" onclick="cardClick(this)">
+            <div class="bg bg-meditation"></div>
+            <div class="label">Meditation</div>
+          </div>
+          <div class="music-card" onclick="cardClick(this)">
+            <div class="bg bg-breathwork"></div>
+            <div class="label">Breathwork</div>
+          </div>
+          <div class="music-card" onclick="cardClick(this)">
+            <div class="bg bg-nature"></div>
+            <div class="label">Nature Sounds</div>
+          </div>
+          <div class="music-card" onclick="lockedCard()">
+            <div class="bg bg-psychedelic"></div>
+            <div class="label">Psychedelic</div>
+            <div class="lock-badge">🔒</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Touchless Wellness -->
+      <div class="section">
+        <div class="section-title">Touchless Wellness</div>
+        <div class="brand-grid">
+          <div class="brand-card" onclick="brandClick(this)">
+            <span class="brand-name" style="font-size:12px;letter-spacing:1.5px;">CRUNCHFIT</span>
+          </div>
+          <div class="brand-card" onclick="brandClick(this)">
+            <span class="brand-name" style="color:#e0b858;font-style:italic;letter-spacing:0.5px;">Glanbia</span>
+          </div>
+          <div class="brand-card" onclick="brandClick(this)">
+            <span class="brand-name" style="color:#6abed4;letter-spacing:2px; font-size:12px;">◈ SALT</span>
+          </div>
+          <div class="brand-card" onclick="brandClick(this)">
+            <span class="brand-name" style="font-size:11px;letter-spacing:2px;">TECHNOGYM</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Brand Partnerships -->
+      <div class="section">
+        <div class="section-title">Brand Partnerships</div>
+        <div class="brand-grid">
+          <div class="brand-card" onclick="brandClick(this)">
+            <span class="brand-name" style="font-family:Georgia,serif;color:#c8a840;font-size:15px;letter-spacing:0.5px;">Forbes☆</span>
+          </div>
+          <div class="brand-card" onclick="brandClick(this)">
+            <span class="brand-name" style="font-size:11px;letter-spacing:2px;">111SKIN</span>
+          </div>
+          <div class="brand-card" onclick="brandClick(this)">
+            <span class="brand-name" style="font-size:10px;letter-spacing:1.5px;line-height:1.5;text-align:center;">THE<br>BREATH<br>SPACE</span>
+          </div>
+          <div class="brand-card" onclick="brandClick(this)">
+            <span class="brand-name" style="font-size:13px;letter-spacing:1px;color:#9ab8d0;">LIVEDATA</span>
+          </div>
+          <div class="brand-card" onclick="brandClick(this)">
+            <span class="brand-name" style="font-size:13px;font-style:italic;letter-spacing:0.5px;">Hypnos</span>
+          </div>
+          <div class="brand-card" onclick="brandClick(this)">
+            <span class="brand-name" style="font-size:12px;letter-spacing:2px;color:#c8a060;font-style:italic;">Marriott</span>
+          </div>
+          <div class="brand-card" onclick="brandClick(this)">
+            <span class="brand-name" style="font-size:22px;font-weight:400;">𝄞</span>
+          </div>
+          <div class="brand-card" onclick="brandClick(this)">
+            <span class="brand-name" style="font-size:10px;letter-spacing:1.5px;line-height:1.5;text-align:center;">THE<br>FARM</span>
+          </div>
+          <div class="brand-card" onclick="brandClick(this)">
+            <span class="brand-name" style="font-size:13px;letter-spacing:3px;color:#8ab4c8;">KOHLER</span>
+          </div>
+          <div class="brand-card" onclick="brandClick(this)">
+            <span class="brand-name" style="font-size:12px;letter-spacing:2px;color:#aaa;">SHARED</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tempo -->
+      <div class="section">
+        <div class="section-title">Tempo</div>
+        <div class="card-grid-2">
+          <div class="music-card" onclick="cardClick(this)">
+            <div class="bg bg-gentle"></div>
+            <div class="label">Gentle Flow</div>
+          </div>
+          <div class="music-card" onclick="cardClick(this)">
+            <div class="bg bg-steady"></div>
+            <div class="label">Steady Flow</div>
+          </div>
+          <div class="music-card span-2" onclick="cardClick(this)">
+            <div class="bg bg-active"></div>
+            <div class="label">Active Flow</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Duration -->
+      <div class="section">
+        <div class="section-title">Duration</div>
+        <div class="dur-grid">
+          <button class="dur-btn" onclick="selectDuration(this)">Under 1 hour</button>
+          <button class="dur-btn active" onclick="selectDuration(this)">60 minutes</button>
+          <button class="dur-btn" onclick="selectDuration(this)">90 minutes</button>
+          <button class="dur-btn" onclick="selectDuration(this)">Over 3 hours</button>
+          <button class="dur-btn span-2" onclick="selectDuration(this)">All day</button>
+        </div>
+      </div>
+
+      <!-- Latest Soundscapes -->
+      <div class="section">
+        <div class="section-title">Latest Soundscapes</div>
+        <div class="card-grid-2">
+          <div class="music-card" onclick="cardClick(this)" style="aspect-ratio:1/0.85;">
+            <div class="bg bg-rainforest"></div>
+            <div class="sublabel">Serene &amp; Rainforest</div>
+            <div class="label">(60m)</div>
+          </div>
+          <div class="music-card" onclick="cardClick(this)" style="aspect-ratio:1/0.85;">
+            <div class="bg bg-solstice"></div>
+            <div class="sublabel">Darkness &amp; Solstice</div>
+            <div class="label">(60m)</div>
+          </div>
+          <div class="music-card" onclick="cardClick(this)" style="aspect-ratio:1/0.85;">
+            <div class="bg bg-coast"></div>
+            <div class="label">The Coast</div>
+          </div>
+          <div class="music-card" onclick="cardClick(this)" style="aspect-ratio:1/0.85;">
+            <div class="bg bg-forest"></div>
+            <div class="label">Forest (Film)</div>
+          </div>
+        </div>
+        <button class="explore-btn" onclick="exploreMore()">Explore More...</button>
+      </div>
+
+      <!-- Chill -->
+      <div class="section">
+        <div class="card-grid-2">
+          <div class="music-card" onclick="cardClick(this)" style="aspect-ratio:1/0.55;">
+            <div class="bg bg-chill"></div>
+            <div class="label" style="color:#888;">Chill (Clas...)</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /scroll-area -->
+  </main>
+</div>
+
+<script>
+  /* ── Player state ── */
+  let isPlaying = true;
+  let isMuted = false;
+  let progress = 28;
+  let ticker = null;
+
+  function startTicker() {
+    if (ticker) return;
+    ticker = setInterval(() => {
+      progress = Math.min(100, progress + 0.05);
+      document.getElementById('progressFill').style.width = progress + '%';
+      if (progress >= 100) progress = 0;
+    }, 200);
+  }
+
+  function stopTicker() {
+    clearInterval(ticker);
+    ticker = null;
+  }
+
+  function togglePlayPause() {
+    isPlaying = !isPlaying;
+    const btn = document.getElementById('mainPlayBtn');
+    btn.textContent = isPlaying ? '⏸' : '▶';
+    isPlaying ? startTicker() : stopTicker();
+  }
+
+  function prevTrack() {
+    progress = 0;
+    document.getElementById('progressFill').style.width = '0%';
+  }
+
+  function nextTrack() {
+    progress = 0;
+    document.getElementById('progressFill').style.width = '0%';
+  }
+
+  function seekProgress(e, bar) {
+    const r = bar.getBoundingClientRect();
+    progress = Math.max(0, Math.min(100, ((e.clientX - r.left) / r.width) * 100));
+    document.getElementById('progressFill').style.width = progress + '%';
+  }
+
+  function toggleMute() {
+    isMuted = !isMuted;
+    document.getElementById('volBtn').textContent = isMuted ? '🔇' : '🔊';
+  }
+
+  function toggleFeatured(card) {
+    const svg = card.querySelector('.play-btn svg path');
+    if (svg.getAttribute('d') === 'M8 5v14l11-7z') {
+      svg.setAttribute('d', 'M6 19h4V5H6v14zm8-14v14h4V5h-4z');
+    } else {
+      svg.setAttribute('d', 'M8 5v14l11-7z');
+    }
+  }
+
+  function cardClick(el) {
+    el.style.filter = 'brightness(1.25)';
+    setTimeout(() => (el.style.filter = ''), 200);
+  }
+
+  function brandClick(el) {
+    el.style.background = '#2a2b48';
+    setTimeout(() => (el.style.background = ''), 300);
+  }
+
+  function selectDuration(btn) {
+    document.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  function lockedCard() {
+    // locked content — no action
+  }
+
+  function exploreMore() {
+    // would navigate to soundscapes list
+  }
+
+  /* Activate nav items */
+  document.querySelectorAll('.nav-list a').forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      document.querySelectorAll('.nav-list a').forEach(l => l.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  /* Start player on load */
+  startTicker();
+</script>
+</body>
+</html>
