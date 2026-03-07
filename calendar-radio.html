@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calendar Sync — Myndstream</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, sans-serif;
+      background: #0b0c16; color: #fff;
+      display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+    }
+    .top-banner {
+      background: #12131f; text-align: center;
+      padding: 7px 16px; font-size: 11.5px; color: #999;
+      border-bottom: 1px solid #1e1f30; flex-shrink: 0;
+    }
+    .top-banner a { color: #6ecfe0; text-decoration: none; }
+    .layout { display: flex; flex: 1; overflow: hidden; }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 210px; background: #0d0e1b; border-right: 1px solid #1a1b2c;
+      display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0;
+    }
+    .sidebar::-webkit-scrollbar { width: 0; }
+    .logo { display: flex; align-items: center; padding: 18px 16px 14px; text-decoration: none; }
+    .logo-img { height: 22px; width: auto; display: block; }
+    .nav-list { list-style: none; padding: 4px 0; }
+    .nav-list a {
+      display: flex; align-items: center; gap: 11px;
+      padding: 9px 16px; color: #7a7b94; font-size: 13px;
+      text-decoration: none; transition: color 0.15s, background 0.15s;
+    }
+    .nav-list a:hover { color: #d0d1e8; background: #161727; }
+    .nav-list a.active { color: #7dd3e8; background: #161727; }
+    .nav-list a .icon { font-size: 15px; width: 18px; text-align: center; }
+    .sidebar-divider { height: 1px; background: #1a1b2c; margin: 8px 14px; }
+    .sidebar-section-label {
+      padding: 8px 16px 3px; font-size: 9.5px; color: #4a4b62;
+      text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;
+    }
+
+    /* MAIN */
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .topbar {
+      display: flex; justify-content: flex-end; align-items: center; gap: 16px;
+      padding: 11px 22px; background: #0d0e1b;
+      border-bottom: 1px solid #1a1b2c; flex-shrink: 0;
+    }
+    .topbar-device { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #6a7090; }
+    .account-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: #1a1b2e; border: 1px solid #26273e; border-radius: 18px;
+      padding: 6px 14px; cursor: pointer; color: #c0c1d8; font-size: 12.5px;
+      transition: background 0.15s;
+    }
+    .account-btn:hover { background: #22233a; }
+    .account-btn::after { content: '▾'; font-size: 10px; color: #888; }
+
+    /* ══ VIEW 1: INTEGRATIONS ══ */
+    #view-integrations {
+      flex: 1; overflow-y: auto; padding: 28px 32px 48px;
+    }
+    #view-integrations::-webkit-scrollbar { width: 5px; }
+    #view-integrations::-webkit-scrollbar-thumb { background: #22233a; border-radius: 3px; }
+
+    .int-page-title { font-size: 24px; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 6px; }
+    .int-page-sub { font-size: 13px; color: #6a7090; line-height: 1.6; margin-bottom: 28px; max-width: 540px; }
+    .int-section-label {
+      font-size: 10px; color: #4a4b62; text-transform: uppercase;
+      letter-spacing: 1.2px; font-weight: 600; margin-bottom: 12px;
+    }
+    .int-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 28px; }
+
+    .int-card {
+      background: #12131f; border: 1px solid #1e1f30;
+      border-radius: 12px; padding: 20px 14px 16px;
+      cursor: pointer; transition: transform 0.15s, border-color 0.15s, background 0.15s;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      text-align: center;
+    }
+    .int-card:hover { transform: translateY(-2px); background: #161727; border-color: #2a2b40; }
+    .int-logo { font-size: 17px; font-weight: 700; letter-spacing: 0.5px; line-height: 1.2; }
+    .int-card-name { font-size: 12px; color: #9a9bb8; }
+    .int-card-tag {
+      font-size: 9.5px; color: #4a4b62; text-transform: uppercase;
+      letter-spacing: 0.8px; margin-top: 2px;
+    }
+    .int-card-arrow { font-size: 11px; color: #3a3b58; margin-top: 2px; }
+    .int-card:hover .int-card-arrow { color: #6a6b88; }
+
+    /* ══ VIEW 2: AUTH ══ */
+    #view-auth {
+      flex: 1; display: none; flex-direction: column;
+      align-items: center; justify-content: center; padding: 40px;
+    }
+    .auth-card {
+      width: 100%; max-width: 380px;
+      background: #12131f; border: 1px solid #1e1f30;
+      border-radius: 16px; padding: 32px; position: relative;
+    }
+    .auth-back {
+      position: absolute; top: 18px; left: 18px;
+      background: none; border: none; cursor: pointer;
+      color: #6a7090; font-size: 12px; font-family: inherit;
+      transition: color 0.15s;
+    }
+    .auth-back:hover { color: #c0c1d8; }
+    .auth-logo-wrap { text-align: center; margin-bottom: 20px; }
+    .auth-int-logo { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+    .auth-title { font-size: 16px; font-weight: 700; text-align: center; margin-bottom: 4px; }
+    .auth-sub { font-size: 12px; color: #6a7090; text-align: center; margin-bottom: 24px; }
+
+    /* Form */
+    .auth-form { display: flex; flex-direction: column; gap: 12px; }
+    .auth-input {
+      background: #0d0e1b; border: 1px solid #22233a;
+      border-radius: 10px; padding: 11px 14px;
+      color: #e0e1f0; font-size: 13px; font-family: inherit;
+      outline: none; transition: border-color 0.2s;
+    }
+    .auth-input::placeholder { color: #363750; }
+    .auth-input:focus { border-color: rgba(123,108,248,0.45); }
+    .auth-connect-btn {
+      width: 100%; padding: 13px; border: none; border-radius: 10px;
+      font-size: 14px; font-weight: 700; font-family: inherit;
+      cursor: pointer; transition: filter 0.15s, transform 0.15s; margin-top: 4px;
+    }
+    .auth-connect-btn:hover { filter: brightness(1.1); transform: scale(1.01); }
+
+    /* OAuth style */
+    .oauth-btn {
+      width: 100%; padding: 14px; border-radius: 10px;
+      border: 1px solid #22233a; background: #0d0e1b;
+      color: #e0e1f0; font-size: 14px; font-weight: 600; font-family: inherit;
+      cursor: pointer; transition: background 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    .oauth-btn:hover { background: #161727; }
+
+    /* Loading state */
+    .auth-loading {
+      display: none; flex-direction: column;
+      align-items: center; justify-content: center; gap: 14px;
+      padding: 16px 0;
+    }
+    .auth-spinner {
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 3px solid #1e1f30; border-top-color: #7b6cf8;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .auth-loading-text { font-size: 13px; color: #6a7090; }
+
+    .auth-note { font-size: 11px; color: #4a4b62; text-align: center; margin-top: 16px; }
+
+    /* ══ VIEW 3: CALENDAR PREVIEW ══ */
+    #view-calendar {
+      flex: 1; display: none; flex-direction: column; overflow: hidden;
+    }
+    .cal-scroll { flex: 1; overflow-y: auto; padding: 26px 32px 20px; }
+    .cal-scroll::-webkit-scrollbar { width: 5px; }
+    .cal-scroll::-webkit-scrollbar-thumb { background: #22233a; border-radius: 3px; }
+
+    .cal-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 22px; }
+    .cal-connected-badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 5px 12px; border-radius: 20px;
+      font-size: 11px; font-weight: 600; letter-spacing: 0.3px;
+      border: 1px solid; margin-bottom: 10px; display: block; width: fit-content;
+    }
+    .cal-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 2px; }
+    .cal-title { font-size: 22px; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 4px; }
+    .cal-date-line { font-size: 13px; color: #6a7090; }
+    .change-btn {
+      background: none; border: 1px solid #22233a; border-radius: 18px;
+      padding: 7px 16px; color: #6a7090; font-size: 12px;
+      cursor: pointer; font-family: inherit; transition: all 0.15s; flex-shrink: 0;
+    }
+    .change-btn:hover { color: #c0c1d8; border-color: #3a3b58; }
+
+    .cal-events { margin-bottom: 20px; }
+    .cal-event-row {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 11px 0; border-bottom: 1px solid #1a1b2c;
+      position: relative;
+    }
+    .cal-event-row:last-child { border-bottom: none; }
+    .cal-time { font-size: 12px; color: #6a7090; width: 42px; flex-shrink: 0; padding-top: 2px; font-variant-numeric: tabular-nums; }
+    .cal-event-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+    .cal-event-info { flex: 1; }
+    .cal-event-label { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+    .cal-event-detail { font-size: 11px; color: #6a7090; }
+    .cal-event-dur {
+      font-size: 11px; color: #4a4b62; flex-shrink: 0;
+      background: #161727; border-radius: 8px; padding: 2px 8px;
+    }
+    .cal-event-row.is-break .cal-event-label { color: #6a7090; font-weight: 500; }
+    .cal-event-row.is-current { background: rgba(123,108,248,0.04); border-radius: 8px; margin: 0 -8px; padding: 11px 8px; }
+    .cal-now-tag {
+      font-size: 9px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: #7b6cf8; background: rgba(123,108,248,0.12);
+      border-radius: 8px; padding: 1px 6px; margin-left: 6px;
+    }
+
+    .cal-summary {
+      background: #12131f; border: 1px solid #1e1f30;
+      border-radius: 12px; padding: 14px 16px; margin-bottom: 20px;
+      display: flex; gap: 20px;
+    }
+    .cal-stat { text-align: center; }
+    .cal-stat-num { font-size: 22px; font-weight: 700; margin-bottom: 2px; }
+    .cal-stat-label { font-size: 10px; color: #6a7090; text-transform: uppercase; letter-spacing: 0.8px; }
+
+    .cal-info-box {
+      background: rgba(91,172,212,0.07); border: 1px solid rgba(91,172,212,0.15);
+      border-radius: 12px; padding: 14px 16px; margin-bottom: 20px;
+      font-size: 12.5px; color: #8a9ab8; line-height: 1.65;
+    }
+    .cal-info-box strong { color: #aec8e0; }
+
+    .start-radio-btn {
+      width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
+      border: none; border-radius: 26px; padding: 15px;
+      color: #fff; font-size: 15px; font-weight: 700; font-family: inherit;
+      cursor: pointer; transition: transform 0.15s, filter 0.15s;
+    }
+    .start-radio-btn:hover { transform: scale(1.01); filter: brightness(1.08); }
+
+    /* ══ VIEW 4: DAY RADIO ══ */
+    #view-radio { flex: 1; display: none; overflow: hidden; }
+    .radio-layout { display: flex; height: 100%; }
+
+    /* Left: Now Playing */
+    .radio-left {
+      flex: 1; position: relative; overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+    .radio-bg {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, #0d1a2a 0%, #0b0c16 70%);
+      transition: background 1.2s ease;
+    }
+    .radio-content {
+      position: relative; z-index: 2;
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; padding: 32px 36px; gap: 0;
+    }
+
+    .radio-topbar {
+      position: absolute; top: 14px; left: 0; right: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 20px; z-index: 3;
+    }
+    .disconnect-btn {
+      background: none; border: none; cursor: pointer;
+      color: rgba(255,255,255,0.35); font-size: 12px;
+      font-family: inherit; transition: color 0.15s;
+    }
+    .disconnect-btn:hover { color: rgba(255,255,255,0.7); }
+    .mute-btn {
+      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px; padding: 5px 14px;
+      color: rgba(255,255,255,0.6); font-size: 12px; cursor: pointer;
+      font-family: inherit; transition: background 0.15s;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .mute-btn:hover { background: rgba(255,255,255,0.12); }
+
+    /* Live pill */
+    .radio-live-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,0.08); backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 20px; padding: 5px 14px;
+      font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
+      margin-bottom: 22px;
+    }
+    .live-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: #4ade80;
+      animation: pulse-dot 1.4s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(0.7); }
+    }
+
+    .radio-emoji { font-size: 42px; margin-bottom: 10px; }
+    .radio-treatment-name {
+      font-size: 30px; font-weight: 800; letter-spacing: -0.5px;
+      margin-bottom: 6px; line-height: 1.1;
+    }
+    .radio-mood { font-size: 13px; color: rgba(255,255,255,0.45); margin-bottom: 28px; }
+
+    /* Waveform */
+    .waveform {
+      display: flex; align-items: center; gap: 3px;
+      height: 48px; margin-bottom: 20px;
+    }
+    .wave-bar {
+      width: 3px; border-radius: 3px;
+      background: rgba(255,255,255,0.55);
+      animation: wave 1.1s ease-in-out infinite alternate;
+      transform-origin: bottom;
+    }
+    @keyframes wave {
+      from { transform: scaleY(0.2); opacity: 0.3; }
+      to   { transform: scaleY(1);   opacity: 0.9; }
+    }
+
+    .radio-track-name {
+      font-size: 12.5px; color: rgba(255,255,255,0.5);
+      margin-bottom: 28px; min-height: 18px;
+    }
+
+    .adapts-wrap { margin-bottom: 16px; }
+    .adapts-label { font-size: 10px; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .adapts-time { font-size: 28px; font-weight: 200; letter-spacing: 2px; font-variant-numeric: tabular-nums; color: rgba(255,255,255,0.7); }
+
+    .radio-client { font-size: 12px; color: rgba(255,255,255,0.35); margin-bottom: 0; min-height: 18px; }
+    .radio-footer {
+      position: absolute; bottom: 16px; left: 0; right: 0;
+      text-align: center; font-size: 11px; color: rgba(255,255,255,0.2);
+      letter-spacing: 0.5px; z-index: 2;
+    }
+
+    /* Right: Schedule */
+    .radio-right {
+      width: 270px; flex-shrink: 0;
+      background: #0d0e1b; border-left: 1px solid #1a1b2c;
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .sched-header {
+      padding: 16px 16px 12px; border-bottom: 1px solid #1a1b2c; flex-shrink: 0;
+    }
+    .sched-date { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+    .sched-connected {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 10px; color: #6a7090;
+    }
+    .sched-connected-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+
+    .sched-list { flex: 1; overflow-y: auto; padding: 8px 0; }
+    .sched-list::-webkit-scrollbar { width: 4px; }
+    .sched-list::-webkit-scrollbar-thumb { background: #22233a; border-radius: 2px; }
+
+    .sched-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 8px 16px; transition: background 0.15s;
+    }
+    .sched-item.past { opacity: 0.4; }
+    .sched-item.current { background: rgba(255,255,255,0.04); }
+    .sched-item.break-item { opacity: 0.55; }
+
+    .sched-item-time {
+      font-size: 11px; color: #6a7090; width: 38px;
+      flex-shrink: 0; padding-top: 2px; font-variant-numeric: tabular-nums;
+    }
+    .sched-item-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      flex-shrink: 0; margin-top: 4px;
+    }
+    .sched-item-info { flex: 1; min-width: 0; }
+    .sched-item-label { font-size: 12px; font-weight: 600; color: #c0c1d8; margin-bottom: 1px; }
+    .sched-item-detail { font-size: 10px; color: #5a5b78; }
+    .sched-item-dur { font-size: 10px; color: #4a4b62; flex-shrink: 0; padding-top: 2px; }
+
+    .now-marker {
+      display: flex; align-items: center; gap: 8px;
+      padding: 4px 16px; margin: 2px 0;
+    }
+    .now-line { flex: 1; height: 1px; background: rgba(123,108,248,0.4); }
+    .now-label {
+      font-size: 9px; font-weight: 700; letter-spacing: 1px;
+      color: #7b6cf8; flex-shrink: 0;
+    }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #22233a; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<div class="top-banner">
+  From Apple: enjoy your free trial. Explore our <a href="#">app</a>
+</div>
+
+<div class="layout">
+  <nav class="sidebar">
+    <a href="index.html" class="logo">
+      <img src="assets/myndstream.svg" alt="Myndstream" class="logo-img" />
+    </a>
+    <ul class="nav-list">
+      <li><a href="index.html"><span class="icon">⌂</span> Home</a></li>
+      <li><a href="#"><span class="icon">⌕</span> Search</a></li>
+      <li><a href="#"><span class="icon">♡</span> My Favorites</a></li>
+      <li><a href="#"><span class="icon">♪</span> Music Shaker</a></li>
+      <li><a href="#"><span class="icon">◎</span> Zones</a></li>
+    </ul>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section-label">Features</div>
+    <ul class="nav-list">
+      <li><a href="circadian-radio.html"><span class="icon">🌗</span> Circadian Radio</a></li>
+      <li><a href="session-filter.html"><span class="icon">⏱</span> Treatment Timer</a></li>
+      <li><a href="prompted-playlist.html"><span class="icon">✦</span> Prompted Playlist</a></li>
+      <li><a href="calendar-radio.html" class="active"><span class="icon">📅</span> Calendar Sync</a></li>
+    </ul>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section-label">Your Plan</div>
+    <ul class="nav-list">
+      <li><a href="#"><span class="icon">📱</span> Mobile Treatments</a></li>
+    </ul>
+  </nav>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-device"><span>🎧</span> Listening on Harriet's iPhone</div>
+      <button class="account-btn">Account</button>
+    </div>
+
+    <!-- VIEW 1: INTEGRATIONS -->
+    <div id="view-integrations">
+      <div class="int-page-title">Calendar Sync</div>
+      <p class="int-page-sub">Connect your booking system or calendar and Myndstream will build an always-on radio station for your working day — automatically adapting as you move from session to session.</p>
+
+      <div class="int-section-label">Booking Systems</div>
+      <div class="int-grid" id="bookingGrid"></div>
+
+      <div class="int-section-label">Calendar Apps</div>
+      <div class="int-grid" id="calendarGrid"></div>
+    </div>
+
+    <!-- VIEW 2: AUTH -->
+    <div id="view-auth">
+      <div class="auth-card">
+        <button class="auth-back" onclick="showView('view-integrations')">← Back</button>
+        <div class="auth-logo-wrap">
+          <div class="auth-int-logo" id="authLogo"></div>
+        </div>
+        <div class="auth-title" id="authTitle"></div>
+        <div class="auth-sub" id="authSub"></div>
+
+        <div id="authFormWrap">
+          <!-- filled by JS -->
+        </div>
+
+        <div class="auth-loading" id="authLoading">
+          <div class="auth-spinner"></div>
+          <div class="auth-loading-text" id="authLoadingText">Connecting...</div>
+        </div>
+
+        <div class="auth-note" id="authNote"></div>
+      </div>
+    </div>
+
+    <!-- VIEW 3: CALENDAR PREVIEW -->
+    <div id="view-calendar">
+      <div class="cal-scroll">
+        <div class="cal-header">
+          <div>
+            <div class="cal-connected-badge" id="calBadge"></div>
+            <div class="cal-title">Today's Schedule</div>
+            <div class="cal-date-line" id="calDateLine"></div>
+          </div>
+          <button class="change-btn" onclick="showView('view-integrations')">Change source</button>
+        </div>
+
+        <div class="cal-summary" id="calSummary"></div>
+
+        <div class="cal-events" id="calEvents"></div>
+
+        <div class="cal-info-box">
+          <strong>Calendar Sync is always on.</strong> Unlike a playlist, you never press play or choose a track — Myndstream reads your schedule and streams the right music for every moment, adapting automatically as sessions change.
+        </div>
+
+        <button class="start-radio-btn" id="startRadioBtn" onclick="startDayRadio()">
+          Start Calendar Sync
+        </button>
+      </div>
+    </div>
+
+    <!-- VIEW 4: DAY RADIO -->
+    <div id="view-radio">
+      <div class="radio-layout">
+
+        <!-- Left: Now Playing -->
+        <div class="radio-left">
+          <div class="radio-bg" id="radioBg"></div>
+
+          <div class="radio-topbar">
+            <button class="disconnect-btn" onclick="disconnect()">← Disconnect</button>
+            <button class="mute-btn" id="muteBtn" onclick="toggleMute()">
+              <span id="muteIcon">🔊</span> <span id="muteLabel">Mute</span>
+            </button>
+          </div>
+
+          <div class="radio-content">
+            <div class="radio-live-pill"><div class="live-dot"></div> LIVE · DAY RADIO</div>
+            <div class="radio-emoji" id="radioEmoji">💆</div>
+            <div class="radio-treatment-name" id="radioName">Deep Tissue Massage</div>
+            <div class="radio-mood" id="radioMood">Pain Relief</div>
+
+            <div class="waveform" id="waveform"></div>
+
+            <div class="radio-track-name" id="radioTrack"></div>
+
+            <div class="adapts-wrap">
+              <div class="adapts-label">Music adapts in</div>
+              <div class="adapts-time" id="adaptsTime">--:--</div>
+            </div>
+
+            <div class="radio-client" id="radioClient"></div>
+          </div>
+
+          <div class="radio-footer" id="radioFooter">Myndstream Calendar Sync · Always On</div>
+        </div>
+
+        <!-- Right: Schedule -->
+        <div class="radio-right">
+          <div class="sched-header">
+            <div class="sched-date" id="schedDate"></div>
+            <div class="sched-connected" id="schedConnected"></div>
+          </div>
+          <div class="sched-list" id="schedList"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+/* ── DATA ── */
+const INTEGRATIONS = {
+  booking: [
+    { id: 'zenoti',    name: 'Zenoti',    tag: 'Booking System', color: '#7c3aed', text: '#c4b5fd', authType: 'form', subdomain: true,  template: 'booking'     },
+    { id: 'mindbody',  name: 'Mindbody',  tag: 'Booking System', color: '#0891b2', text: '#67e8f9', authType: 'form', subdomain: false, template: 'booking'     },
+    { id: 'treatwell', name: 'Treatwell', tag: 'Marketplace',    color: '#059669', text: '#6ee7b7', authType: 'form', subdomain: false, template: 'marketplace' },
+    { id: 'fresha',    name: 'Fresha',    tag: 'Marketplace',    color: '#6d28d9', text: '#c4b5fd', authType: 'form', subdomain: false, template: 'marketplace' },
+    { id: 'phorest',   name: 'Phorest',   tag: 'Booking System', color: '#be185d', text: '#f9a8d4', authType: 'form', subdomain: true,  template: 'booking'     },
+    { id: 'timely',    name: 'Timely',    tag: 'Scheduling',     color: '#c2410c', text: '#fdba74', authType: 'form', subdomain: false, template: 'booking'     },
+    { id: 'acuity',    name: 'Acuity',    tag: 'Scheduling',     color: '#4338ca', text: '#a5b4fc', authType: 'form', subdomain: false, template: 'calendar'    },
+  ],
+  calendar: [
+    { id: 'google',  name: 'Google Calendar', tag: 'Calendar', color: '#dc2626', text: '#fca5a5', authType: 'oauth', oauthLabel: 'Continue with Google',    template: 'calendar' },
+    { id: 'outlook', name: 'Outlook',         tag: 'Calendar', color: '#0078d4', text: '#93c5fd', authType: 'oauth', oauthLabel: 'Sign in with Microsoft', template: 'calendar' },
+    { id: 'apple',   name: 'Apple Calendar',  tag: 'Calendar', color: '#6b7280', text: '#d1d5db', authType: 'oauth', oauthLabel: 'Sign in with Apple',     template: 'calendar' },
+  ],
+};
+
+const LOGO_STYLES = {
+  zenoti:    'font-style:italic;letter-spacing:2px;font-weight:300',
+  mindbody:  'letter-spacing:2px;font-weight:900;font-size:14px',
+  treatwell: 'font-weight:400;letter-spacing:1px',
+  fresha:    'font-weight:300;letter-spacing:3px',
+  phorest:   'font-weight:700;letter-spacing:1px',
+  timely:    'font-weight:600;letter-spacing:1px',
+  acuity:    'font-weight:700;letter-spacing:0.5px;font-size:14px',
+  google:    'font-weight:700;letter-spacing:0.5px',
+  outlook:   'font-weight:400;letter-spacing:0.5px',
+  apple:     'font-weight:300;letter-spacing:2px',
+};
+
+const TYPES = {
+  deep_tissue:    { label: 'Deep Tissue Massage', emoji: '💆', mood: 'Pain Relief',  dot: '#ef4444', bg: '#2a0808' },
+  sports_massage: { label: 'Sports Massage',       emoji: '🏃', mood: 'Recovery',     dot: '#22c55e', bg: '#072010' },
+  swedish:        { label: 'Swedish Massage',       emoji: '🌊', mood: 'Relax',        dot: '#38bdf8', bg: '#071a28' },
+  facial:         { label: 'Facial',                emoji: '✨', mood: 'Gentle Flow',  dot: '#c084fc', bg: '#180828' },
+  hot_stone:      { label: 'Hot Stone Massage',     emoji: '🪨', mood: 'Relax',        dot: '#fb923c', bg: '#1a0c04' },
+  reiki:          { label: 'Reiki',                 emoji: '🔮', mood: 'Meditation',   dot: '#a78bfa', bg: '#150828' },
+  meditation:     { label: 'Meditation',            emoji: '🧘', mood: 'Meditation',   dot: '#34d399', bg: '#071818' },
+  breathwork:     { label: 'Breathwork',            emoji: '🌬', mood: 'Breathwork',   dot: '#60a5fa', bg: '#071428' },
+  brk:            { label: 'Break',                 emoji: '☕', mood: '',             dot: '#64748b', bg: '#0b0c16', isBreak: true },
+};
+
+const RADIO_TRACKS = {
+  'Pain Relief':  ['Theta Delta Drift', 'Deep Tissue Resonance', '174Hz — Pain Gate', 'Analgesia Waves'],
+  'Recovery':     ['Athletic Restore', 'Muscle Memory', 'Fascia Flow', 'Lactic Clearance'],
+  'Relax':        ['Swedish Tide', 'Parasympathetic Drift', 'Cortisol Down', 'Body Melt'],
+  'Gentle Flow':  ['Silk Atmosphere', 'Rose Frequency', 'Collagen Calm', 'Luminance'],
+  'Meditation':   ['Stillpoint', 'Third Eye Open', '432Hz Alignment', 'No-Mind State'],
+  'Breathwork':   ['Box Breath Carrier', 'Pranayama Drift', 'Coherence Wave'],
+  '':             ['Interlude', 'The Breath Space', 'Between'],
+};
+
+// Templates: relative minutes from schedule start
+const TEMPLATES = {
+  booking: [
+    { rel: 0,   dur: 60, type: 'deep_tissue',    client: 'Emma Richardson',  room: 'Room 1'        },
+    { rel: 60,  dur: 15, type: 'brk',            client: null,               room: 'Changeover'    },
+    { rel: 75,  dur: 50, type: 'swedish',         client: "James O'Brien",    room: 'Room 2'        },
+    { rel: 125, dur: 45, type: 'facial',          client: 'Sarah Chen',       room: 'Facial Suite'  },
+    { rel: 170, dur: 40, type: 'brk',            client: null,               room: 'Lunch'         },
+    { rel: 210, dur: 60, type: 'sports_massage',  client: 'Tom Williams',     room: 'Room 1'        },
+    { rel: 270, dur: 15, type: 'brk',            client: null,               room: 'Changeover'    },
+    { rel: 285, dur: 75, type: 'hot_stone',       client: 'Priya Sharma',     room: 'Deluxe Suite'  },
+    { rel: 360, dur: 45, type: 'reiki',           client: 'Mark Davies',      room: 'Zen Room'      },
+    { rel: 405, dur: 20, type: 'brk',            client: null,               room: 'Wind Down'     },
+  ],
+  marketplace: [
+    { rel: 0,   dur: 60, type: 'deep_tissue',    client: 'Booking #4821',    room: null },
+    { rel: 60,  dur: 15, type: 'brk',            client: null,               room: 'Changeover' },
+    { rel: 75,  dur: 60, type: 'swedish',         client: 'Booking #4822',    room: null },
+    { rel: 135, dur: 60, type: 'facial',          client: 'Booking #4823',    room: null },
+    { rel: 195, dur: 45, type: 'brk',            client: null,               room: 'Lunch' },
+    { rel: 240, dur: 45, type: 'sports_massage',  client: 'Booking #4824',    room: null },
+    { rel: 285, dur: 15, type: 'brk',            client: null,               room: 'Changeover' },
+    { rel: 300, dur: 90, type: 'hot_stone',       client: 'Booking #4825',    room: null },
+    { rel: 390, dur: 45, type: 'reiki',           client: 'Booking #4826',    room: null },
+  ],
+  calendar: [
+    { rel: 0,   dur: 60, type: 'deep_tissue',    client: 'Emma R.',          room: null },
+    { rel: 60,  dur: 15, type: 'brk',            client: null,               room: null },
+    { rel: 75,  dur: 45, type: 'swedish',         client: 'James O.',         room: null },
+    { rel: 120, dur: 60, type: 'facial',          client: 'Sarah C.',         room: null },
+    { rel: 180, dur: 30, type: 'brk',            client: null,               room: 'Lunch' },
+    { rel: 210, dur: 60, type: 'sports_massage',  client: 'Tom W.',           room: null },
+    { rel: 270, dur: 15, type: 'brk',            client: null,               room: null },
+    { rel: 285, dur: 60, type: 'hot_stone',       client: 'Priya S.',         room: null },
+    { rel: 345, dur: 45, type: 'meditation',      client: null,               room: null },
+    { rel: 390, dur: 30, type: 'brk',            client: null,               room: null },
+  ],
+};
+
+/* ── STATE ── */
+let selectedInt = null;
+let schedule = [];
+let currentIdx = 0;
+let radioTicker = null;
+let isMuted = false;
+let elapsedSecs = 0; // seconds elapsed in current segment
+
+/* ── VIEW SWITCHING ── */
+function showView(id) {
+  ['view-integrations','view-auth','view-calendar','view-radio'].forEach(v => {
+    document.getElementById(v).style.display = 'none';
+  });
+  const el = document.getElementById(id);
+  el.style.display = (id === 'view-radio') ? 'block' : 'flex';
+  if (id !== 'view-radio') el.style.flexDirection = 'column';
+}
+
+/* ── INTEGRATION GRID ── */
+function buildGrids() {
+  renderGrid('bookingGrid', INTEGRATIONS.booking);
+  renderGrid('calendarGrid', INTEGRATIONS.calendar);
+}
+
+function renderGrid(containerId, items) {
+  const grid = document.getElementById(containerId);
+  grid.innerHTML = items.map(it => `
+    <div class="int-card" onclick="selectIntegration('${it.id}')">
+      <div class="int-logo" style="color:${it.color};${LOGO_STYLES[it.id] || ''}">${it.name}</div>
+      <div class="int-card-tag">${it.tag}</div>
+      <div class="int-card-arrow">Connect →</div>
+    </div>
+  `).join('');
+}
+
+/* ── AUTH ── */
+function selectIntegration(id) {
+  const all = [...INTEGRATIONS.booking, ...INTEGRATIONS.calendar];
+  selectedInt = all.find(i => i.id === id);
+  showView('view-auth');
+
+  document.getElementById('authLogo').textContent = selectedInt.name;
+  document.getElementById('authLogo').style.cssText = `color:${selectedInt.color};${LOGO_STYLES[id] || ''}`;
+  document.getElementById('authTitle').textContent = `Connect to ${selectedInt.name}`;
+  document.getElementById('authLoading').style.display = 'none';
+
+  const wrap = document.getElementById('authFormWrap');
+
+  if (selectedInt.authType === 'oauth') {
+    document.getElementById('authSub').textContent = `Authorise Myndstream to read your ${selectedInt.name} events.`;
+    document.getElementById('authNote').textContent = `You'll be redirected to ${selectedInt.name} to sign in securely.`;
+    wrap.innerHTML = `
+      <button class="oauth-btn" onclick="submitAuth()" style="border-color:${selectedInt.color}33;">
+        <span style="font-size:16px">🔐</span> ${selectedInt.oauthLabel}
+      </button>
+    `;
+  } else {
+    document.getElementById('authSub').textContent = `Sign in to import today's appointments.`;
+    document.getElementById('authNote').textContent = `Your credentials are sent directly to ${selectedInt.name} and never stored by Myndstream.`;
+    wrap.innerHTML = `
+      <div class="auth-form">
+        ${selectedInt.subdomain ? `<input class="auth-input" placeholder="${selectedInt.id}.yourdomain.com" type="text" />` : ''}
+        <input class="auth-input" placeholder="Email address" type="email" />
+        <input class="auth-input" placeholder="Password" type="password" />
+        <button class="auth-connect-btn"
+          style="background:${selectedInt.color};color:#fff;"
+          onclick="submitAuth()">
+          Connect ${selectedInt.name}
+        </button>
+      </div>
+    `;
+  }
+}
+
+function submitAuth() {
+  const wrap = document.getElementById('authFormWrap');
+  wrap.style.display = 'none';
+  document.getElementById('authNote').style.display = 'none';
+
+  const loading = document.getElementById('authLoading');
+  loading.style.display = 'flex';
+
+  const msgs = ['Connecting...', 'Authenticating...', 'Importing schedule...', 'Almost there...'];
+  let i = 0;
+  const msgInterval = setInterval(() => {
+    document.getElementById('authLoadingText').textContent = msgs[Math.min(i++, msgs.length - 1)];
+  }, 500);
+
+  setTimeout(() => {
+    clearInterval(msgInterval);
+    buildSchedule();
+    showCalendarPreview();
+  }, 2000);
+}
+
+/* ── SCHEDULE ── */
+function buildSchedule() {
+  // Always anchor to 9:00 AM
+  const anchor = 9 * 60;
+
+  const template = TEMPLATES[selectedInt.template];
+  schedule = template.map(ev => {
+    const absStart = anchor + ev.rel;
+    const t = TYPES[ev.type] || TYPES.brk;
+    const detail = [ev.client, ev.room].filter(Boolean).join(' · ');
+    return {
+      ...ev,
+      absStart,
+      timeStr: minsToTime(absStart),
+      type: ev.type,
+      treatment: t,
+      detail,
+    };
+  });
+}
+
+function minsToTime(m) {
+  const h = Math.floor(m / 60) % 24;
+  const min = m % 60;
+  return `${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')}`;
+}
+
+function findCurrentIdx() {
+  const now = new Date();
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  for (let i = 0; i < schedule.length; i++) {
+    const s = schedule[i];
+    if (nowMins >= s.absStart && nowMins < s.absStart + s.dur) return i;
+  }
+  return 0;
+}
+
+/* ── CALENDAR PREVIEW ── */
+function showCalendarPreview() {
+  showView('view-calendar');
+
+  // Badge
+  const badge = document.getElementById('calBadge');
+  badge.style.cssText = `color:${selectedInt.color};border-color:${selectedInt.color}44;`;
+  badge.innerHTML = `<span class="cal-dot" style="background:${selectedInt.color}"></span> Connected via ${selectedInt.name}`;
+
+  // Date
+  const now = new Date();
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('calDateLine').textContent =
+    `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+
+  // Summary
+  const treatments = schedule.filter(s => !s.treatment.isBreak);
+  const totalMins = schedule.reduce((a, s) => a + s.dur, 0);
+  const treatMins = treatments.reduce((a, s) => a + s.dur, 0);
+  document.getElementById('calSummary').innerHTML = `
+    <div class="cal-stat"><div class="cal-stat-num" style="color:${selectedInt.color}">${treatments.length}</div><div class="cal-stat-label">Appointments</div></div>
+    <div class="cal-stat"><div class="cal-stat-num" style="color:${selectedInt.color}">${fmtMins(treatMins)}</div><div class="cal-stat-label">Treatment Time</div></div>
+    <div class="cal-stat"><div class="cal-stat-num" style="color:${selectedInt.color}">${fmtMins(totalMins)}</div><div class="cal-stat-label">Total Day</div></div>
+  `;
+
+  // Start button colour
+  const btn = document.getElementById('startRadioBtn');
+  btn.style.background = `linear-gradient(135deg, ${selectedInt.color} 0%, #7b6cf8 100%)`;
+
+  // Events list
+  const cidx = findCurrentIdx();
+  const eventsEl = document.getElementById('calEvents');
+  eventsEl.innerHTML = schedule.map((ev, i) => {
+    const isBreak = ev.treatment.isBreak;
+    const isCurrent = i === cidx;
+    const nowTag = isCurrent ? '<span class="cal-now-tag">Now</span>' : '';
+    const detail = ev.detail || (isBreak && ev.room ? ev.room : '');
+    return `
+      <div class="cal-event-row ${isBreak ? 'is-break' : ''} ${isCurrent ? 'is-current' : ''}">
+        <div class="cal-time">${ev.timeStr}</div>
+        <div class="cal-event-dot" style="background:${ev.treatment.dot}"></div>
+        <div class="cal-event-info">
+          <div class="cal-event-label">${ev.treatment.label}${nowTag}</div>
+          ${detail ? `<div class="cal-event-detail">${detail}</div>` : ''}
+        </div>
+        <div class="cal-event-dur">${ev.dur}m</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function fmtMins(m) {
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60), r = m % 60;
+  return r ? `${h}h ${r}m` : `${h}h`;
+}
+
+/* ── DAY RADIO ── */
+function startDayRadio() {
+  showView('view-radio');
+  buildWaveform();
+
+  currentIdx = findCurrentIdx();
+  const now = new Date();
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  elapsedSecs = Math.max(0, (nowMins - schedule[currentIdx].absStart) * 60);
+
+  loadSegment(currentIdx);
+  renderSchedulePanel();
+
+  clearInterval(radioTicker);
+  radioTicker = setInterval(tick, 1000);
+}
+
+function buildWaveform() {
+  const wf = document.getElementById('waveform');
+  const heights = [10,20,34,48,40,52,28,44,52,36,48,20,40,52,30,46,16,38,52,24,42,52,18,36,48];
+  const delays  = [0,.1,.2,.3,.15,.05,.4,.22,.12,.35,.08,.28,.18,.45,.03,.25,.42,.07,.32,.16,.38,.02,.48,.20,.44];
+  wf.innerHTML = heights.map((h, i) => `
+    <div class="wave-bar" style="height:${h}px;animation-delay:${delays[i]}s;"></div>
+  `).join('');
+}
+
+function loadSegment(idx) {
+  currentIdx = idx;
+  const seg = schedule[idx];
+  const t = seg.treatment;
+
+  document.getElementById('radioEmoji').textContent = t.emoji;
+  document.getElementById('radioName').textContent = t.label;
+  document.getElementById('radioMood').textContent = t.mood || 'Ambient';
+  document.getElementById('radioClient').textContent = seg.detail || '';
+
+  // Background accent
+  document.getElementById('radioBg').style.background =
+    `linear-gradient(135deg, ${t.bg} 0%, #0b0c16 65%)`;
+
+  updateTrack();
+  updateScheduleHighlight();
+}
+
+function updateTrack() {
+  const seg = schedule[currentIdx];
+  const tracks = RADIO_TRACKS[seg.treatment.mood] || RADIO_TRACKS[''];
+  const idx = Math.floor(elapsedSecs / (18 * 60)) % tracks.length;
+  document.getElementById('radioTrack').textContent = tracks[idx] + ' — Myndstream';
+}
+
+function tick() {
+  elapsedSecs++;
+  const seg = schedule[currentIdx];
+  const segTotalSecs = seg.dur * 60;
+  const remainSecs = segTotalSecs - elapsedSecs;
+
+  if (remainSecs <= 0) {
+    const next = currentIdx + 1;
+    if (next < schedule.length) {
+      elapsedSecs = 0;
+      loadSegment(next);
+    } else {
+      document.getElementById('adaptsTime').textContent = 'Day complete';
+      clearInterval(radioTicker);
+      return;
+    }
+  }
+
+  // Adapts countdown
+  const r = Math.max(0, segTotalSecs - elapsedSecs);
+  const m = Math.floor(r / 60), s = r % 60;
+  document.getElementById('adaptsTime').textContent =
+    `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+
+  updateTrack();
+}
+
+function renderSchedulePanel() {
+  const now = new Date();
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('schedDate').textContent =
+    `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]}`;
+
+  document.getElementById('schedConnected').innerHTML =
+    `<div class="sched-connected-dot" style="background:${selectedInt.color}"></div> via ${selectedInt.name}`;
+
+  updateScheduleHighlight();
+}
+
+function updateScheduleHighlight() {
+  const nowMins = (() => {
+    const n = new Date(); return n.getHours() * 60 + n.getMinutes();
+  })();
+
+  const list = document.getElementById('schedList');
+  list.innerHTML = '';
+
+  schedule.forEach((ev, i) => {
+    const isPast = i < currentIdx;
+    const isCurrent = i === currentIdx;
+    const isBreak = ev.treatment.isBreak;
+
+    // Insert NOW marker before current
+    if (isCurrent) {
+      const marker = document.createElement('div');
+      marker.className = 'now-marker';
+      marker.innerHTML = `<div class="now-line"></div><div class="now-label">NOW</div><div class="now-line"></div>`;
+      list.appendChild(marker);
+    }
+
+    const item = document.createElement('div');
+    item.className = `sched-item ${isPast ? 'past' : ''} ${isCurrent ? 'current' : ''} ${isBreak ? 'break-item' : ''}`;
+    item.innerHTML = `
+      <div class="sched-item-time">${ev.timeStr}</div>
+      <div class="sched-item-dot" style="background:${ev.treatment.dot}"></div>
+      <div class="sched-item-info">
+        <div class="sched-item-label">${ev.treatment.label}</div>
+        ${ev.detail ? `<div class="sched-item-detail">${ev.detail}</div>` : ''}
+      </div>
+      <div class="sched-item-dur">${ev.dur}m</div>
+    `;
+    list.appendChild(item);
+  });
+
+  // Scroll NOW marker into view
+  const currentEl = list.querySelector('.current');
+  if (currentEl) currentEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+}
+
+function toggleMute() {
+  isMuted = !isMuted;
+  document.getElementById('muteIcon').textContent = isMuted ? '🔇' : '🔊';
+  document.getElementById('muteLabel').textContent = isMuted ? 'Unmute' : 'Mute';
+}
+
+function disconnect() {
+  clearInterval(radioTicker);
+  selectedInt = null;
+  schedule = [];
+  // Reset auth form state
+  document.getElementById('authFormWrap').style.display = '';
+  document.getElementById('authNote').style.display = '';
+  document.getElementById('authLoading').style.display = 'none';
+  showView('view-integrations');
+}
+
+/* ── NAV ── */
+document.querySelectorAll('.nav-list a').forEach(link => {
+  link.addEventListener('click', function(e) {
+    if (this.getAttribute('href') === '#') {
+      e.preventDefault();
+      document.querySelectorAll('.nav-list a').forEach(l => l.classList.remove('active'));
+      this.classList.add('active');
+    }
+  });
+});
+
+/* ── INIT ── */
+buildGrids();
+</script>
+</body>
+</html>
