@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prompted Playlist — Myndstream</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, sans-serif;
+      background: #0b0c16; color: #fff;
+      display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+    }
+    .top-banner {
+      background: #12131f; text-align: center;
+      padding: 7px 16px; font-size: 11.5px; color: #999;
+      border-bottom: 1px solid #1e1f30; flex-shrink: 0;
+    }
+    .top-banner a { color: #6ecfe0; text-decoration: none; }
+    .layout { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: 210px; background: #0d0e1b; border-right: 1px solid #1a1b2c;
+      display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0;
+    }
+    .sidebar::-webkit-scrollbar { width: 0; }
+    .logo { display: flex; align-items: center; padding: 18px 16px 14px; text-decoration: none; }
+    .logo-img { height: 22px; width: auto; display: block; }
+    .nav-list { list-style: none; padding: 4px 0; }
+    .nav-list a {
+      display: flex; align-items: center; gap: 11px;
+      padding: 9px 16px; color: #7a7b94; font-size: 13px;
+      text-decoration: none; transition: color 0.15s, background 0.15s;
+    }
+    .nav-list a:hover { color: #d0d1e8; background: #161727; }
+    .nav-list a.active { color: #7dd3e8; background: #161727; }
+    .nav-list a .icon { font-size: 15px; width: 18px; text-align: center; }
+    .sidebar-divider { height: 1px; background: #1a1b2c; margin: 8px 14px; }
+    .sidebar-section-label {
+      padding: 8px 16px 3px; font-size: 9.5px; color: #4a4b62;
+      text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;
+    }
+
+    /* ── MAIN ── */
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .topbar {
+      display: flex; justify-content: flex-end; align-items: center; gap: 16px;
+      padding: 11px 22px; background: #0d0e1b;
+      border-bottom: 1px solid #1a1b2c; flex-shrink: 0;
+    }
+    .topbar-device { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #6a7090; }
+    .account-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: #1a1b2e; border: 1px solid #26273e; border-radius: 18px;
+      padding: 6px 14px; cursor: pointer; color: #c0c1d8; font-size: 12.5px;
+      transition: background 0.15s;
+    }
+    .account-btn:hover { background: #22233a; }
+    .account-btn::after { content: '▾'; font-size: 10px; color: #888; }
+
+    /* ════════════════════════════
+       VIEW 1: INPUT
+    ════════════════════════════ */
+    #view-input {
+      flex: 1; overflow-y: auto; padding: 32px 36px 48px;
+      display: flex; flex-direction: column;
+    }
+    #view-input::-webkit-scrollbar { width: 5px; }
+    #view-input::-webkit-scrollbar-thumb { background: #22233a; border-radius: 3px; }
+
+    .prompt-hero { margin-bottom: 28px; }
+    .prompt-badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: linear-gradient(135deg, rgba(91,172,212,0.12), rgba(123,108,248,0.12));
+      border: 1px solid rgba(123,108,248,0.28);
+      border-radius: 20px; padding: 5px 14px;
+      font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
+      color: #a89cf8; text-transform: uppercase; margin-bottom: 14px;
+      display: block; width: fit-content;
+    }
+    .prompt-title {
+      font-size: 30px; font-weight: 800; letter-spacing: -0.5px;
+      background: linear-gradient(130deg, #fff 30%, #a89cf8 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin-bottom: 8px;
+    }
+    .prompt-subtitle { font-size: 13px; color: #6a7090; line-height: 1.6; max-width: 520px; }
+
+    .prompt-textarea {
+      width: 100%; min-height: 110px;
+      background: #12131f; border: 1px solid #22233a;
+      border-radius: 14px; padding: 16px 18px;
+      color: #e0e1f0; font-size: 14px; font-family: inherit;
+      line-height: 1.65; resize: vertical; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      margin-bottom: 16px;
+    }
+    .prompt-textarea::placeholder { color: #363750; }
+    .prompt-textarea:focus {
+      border-color: rgba(123,108,248,0.45);
+      box-shadow: 0 0 0 3px rgba(123,108,248,0.07);
+    }
+
+    .examples-label {
+      font-size: 10px; color: #4a4b62; text-transform: uppercase;
+      letter-spacing: 1px; font-weight: 600; margin-bottom: 10px;
+    }
+    .example-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; }
+    .example-chip {
+      background: #161727; border: 1px solid #22233a;
+      border-radius: 20px; padding: 7px 14px;
+      font-size: 12px; color: #7a7b9a; cursor: pointer;
+      transition: all 0.15s; font-family: inherit; text-align: left;
+    }
+    .example-chip:hover { background: #1e1f34; color: #c0c1d8; border-color: #3a3b58; }
+
+    .generate-btn {
+      display: inline-flex; align-items: center; gap: 9px;
+      background: linear-gradient(135deg, #5bacd4 0%, #7b6cf8 100%);
+      border: none; border-radius: 26px; padding: 14px 32px;
+      color: #fff; font-size: 14px; font-weight: 700; font-family: inherit;
+      cursor: pointer; transition: transform 0.15s, filter 0.15s;
+    }
+    .generate-btn:hover { transform: scale(1.02); filter: brightness(1.1); }
+    .generate-btn .spark { font-size: 16px; }
+
+    /* ════════════════════════════
+       VIEW 2: LOADING
+    ════════════════════════════ */
+    #view-loading {
+      flex: 1; display: none; flex-direction: column;
+      align-items: center; justify-content: center; padding: 40px;
+    }
+    .loading-orb {
+      width: 60px; height: 60px; border-radius: 50%;
+      background: linear-gradient(135deg, #5bacd4, #7b6cf8);
+      margin-bottom: 24px; position: relative;
+      animation: orb-pulse 1.6s ease-in-out infinite;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+    }
+    @keyframes orb-pulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(123,108,248,0.4); }
+      50% { transform: scale(1.06); box-shadow: 0 0 0 16px rgba(123,108,248,0); }
+    }
+    .loading-status {
+      font-size: 14px; color: #8a8baa; margin-bottom: 28px;
+      min-height: 22px; transition: opacity 0.3s;
+    }
+    .loading-feed {
+      width: 100%; max-width: 400px;
+      background: #12131f; border: 1px solid #1e1f30;
+      border-radius: 14px; padding: 14px 18px; min-height: 60px;
+    }
+    .feed-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 7px 0; border-bottom: 1px solid #1a1b2c;
+      opacity: 0; transform: translateY(5px);
+      animation: fade-in-up 0.35s ease forwards;
+    }
+    .feed-row:last-of-type { border-bottom: none; }
+    @keyframes fade-in-up { to { opacity: 1; transform: translateY(0); } }
+    .feed-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-right: 11px; }
+    .feed-name { font-size: 13px; color: #c0c1d8; flex: 1; }
+    .feed-dur { font-size: 12px; color: #6a7090; }
+    .feed-total {
+      display: flex; justify-content: space-between;
+      padding-top: 11px; margin-top: 2px;
+      font-size: 11px; font-weight: 700; color: #5a5b78; letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    /* ════════════════════════════
+       VIEW 3: RESULTS
+    ════════════════════════════ */
+    #view-results { flex: 1; display: none; flex-direction: column; overflow: hidden; }
+    .results-scroll {
+      flex: 1; overflow-y: auto; padding: 26px 28px 20px;
+    }
+    .results-scroll::-webkit-scrollbar { width: 5px; }
+    .results-scroll::-webkit-scrollbar-thumb { background: #22233a; border-radius: 3px; }
+
+    .results-hdr {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 22px;
+    }
+    .results-title { font-size: 22px; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 4px; }
+    .results-meta { font-size: 12px; color: #6a7090; }
+    .retry-btn {
+      background: none; border: 1px solid #22233a; border-radius: 18px;
+      padding: 7px 16px; color: #6a7090; font-size: 12px;
+      cursor: pointer; font-family: inherit; transition: all 0.15s; flex-shrink: 0;
+    }
+    .retry-btn:hover { color: #c0c1d8; border-color: #3a3b58; }
+
+    /* Timeline */
+    .seg-row { display: flex; gap: 14px; }
+    .seg-spine {
+      display: flex; flex-direction: column; align-items: center;
+      flex-shrink: 0; width: 18px; padding-top: 18px;
+    }
+    .seg-dot {
+      width: 13px; height: 13px; border-radius: 50%;
+      border: 2px solid; background: #0b0c16; flex-shrink: 0;
+    }
+    .seg-connector { width: 2px; flex: 1; min-height: 12px; background: #1a1b2c; margin-top: 4px; }
+    .seg-row:last-child .seg-connector { display: none; }
+
+    .seg-card {
+      flex: 1; border-radius: 12px; border: 1px solid;
+      overflow: hidden; margin-bottom: 10px;
+    }
+    .seg-card-header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 13px 15px; border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .seg-emoji { font-size: 22px; flex-shrink: 0; }
+    .seg-name { font-size: 15px; font-weight: 700; margin-bottom: 5px; }
+    .seg-tags { display: flex; align-items: center; gap: 7px; }
+    .dur-badge {
+      font-size: 10px; font-weight: 700;
+      background: rgba(255,255,255,0.07); border-radius: 10px;
+      padding: 2px 8px; color: #b0b1cc;
+    }
+    .mood-badge {
+      font-size: 10px; font-weight: 600;
+      border-radius: 10px; padding: 2px 8px;
+      border: 1px solid; opacity: 0.85;
+    }
+    .seg-tracks { padding: 8px 15px 12px; }
+    .track-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .track-row:last-child { border-bottom: none; }
+    .track-left { display: flex; align-items: center; gap: 7px; }
+    .track-bullet { font-size: 10px; color: #3a3b58; }
+    .track-name { font-size: 12px; color: #9a9bb8; }
+    .track-artist { font-size: 11px; color: #4a4b62; margin-left: 4px; }
+    .track-dur { font-size: 11px; color: #4a4b62; }
+
+    /* Break card */
+    .break-card {
+      flex: 1; margin-bottom: 10px;
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px;
+      background: #0e0f1c; border: 1px dashed #1e1f30;
+      border-radius: 10px; font-size: 13px; color: #4a4b62;
+    }
+
+    .start-bar {
+      flex-shrink: 0; padding: 14px 28px;
+      background: #0d0e1b; border-top: 1px solid #1a1b2c;
+    }
+    .start-btn {
+      width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
+      background: linear-gradient(135deg, #5bacd4 0%, #7b6cf8 100%);
+      border: none; border-radius: 26px; padding: 15px;
+      color: #fff; font-size: 15px; font-weight: 700; font-family: inherit;
+      cursor: pointer; transition: transform 0.15s, filter 0.15s;
+    }
+    .start-btn:hover { transform: scale(1.01); filter: brightness(1.08); }
+
+    /* ════════════════════════════
+       VIEW 4: SESSION
+    ════════════════════════════ */
+    #view-session { flex: 1; display: none; flex-direction: column; position: relative; overflow: hidden; }
+    .session-bg {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, #0d1a2a 0%, #0b0c16 55%, #150d24 100%);
+      transition: background 0.8s ease;
+    }
+    .session-inner {
+      position: relative; z-index: 2;
+      flex: 1; display: flex; flex-direction: column;
+      padding: 18px 28px 28px; overflow: hidden;
+    }
+    .session-topbar {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 0;
+    }
+    .back-btn {
+      background: none; border: none; cursor: pointer;
+      color: rgba(255,255,255,0.45); font-size: 12px;
+      font-family: inherit; padding: 0;
+      display: flex; align-items: center; gap: 6px; transition: color 0.15s;
+    }
+    .back-btn:hover { color: rgba(255,255,255,0.85); }
+    .overall-remain { font-size: 11px; color: rgba(255,255,255,0.3); letter-spacing: 0.3px; }
+
+    .session-center {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; text-align: center;
+    }
+    .in-session-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,0.09); backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 20px; padding: 5px 14px;
+      font-size: 11px; font-weight: 700; letter-spacing: 1px;
+      margin-bottom: 16px;
+    }
+    .live-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: #4ade80;
+      animation: pulse-dot 1.4s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(0.7); }
+    }
+    .sess-emoji { font-size: 36px; margin-bottom: 8px; }
+    .sess-name { font-size: 28px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 5px; }
+    .sess-mood { font-size: 13px; color: rgba(255,255,255,0.4); margin-bottom: 28px; }
+    .sess-timer {
+      font-size: 64px; font-weight: 200; letter-spacing: 3px;
+      font-variant-numeric: tabular-nums;
+      color: rgba(255,255,255,0.92); margin-bottom: 26px;
+    }
+    .sess-play-btn {
+      width: 70px; height: 70px; background: rgba(255,255,255,0.94);
+      border-radius: 50%; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.15s; margin-bottom: 16px;
+    }
+    .sess-play-btn:hover { transform: scale(1.06); }
+    .sess-play-btn svg { width: 26px; height: 26px; fill: #111; }
+    .play-icon { display: block; }
+    .pause-icon { display: none; }
+    .sess-play-btn.playing .play-icon { display: none; }
+    .sess-play-btn.playing .pause-icon { display: block; }
+    .sess-track { font-size: 12px; color: rgba(255,255,255,0.35); margin-bottom: 32px; min-height: 18px; }
+
+    .sess-progress-wrap { width: 100%; max-width: 360px; }
+    .seg-bar-wrap {
+      height: 3px; background: rgba(255,255,255,0.1);
+      border-radius: 2px; overflow: hidden; margin-bottom: 6px;
+    }
+    .seg-bar-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, #5bacd4, #7b6cf8);
+      border-radius: 2px; transition: width 1s linear;
+    }
+    .seg-bar-label { font-size: 11px; color: rgba(255,255,255,0.28); margin-bottom: 18px; text-align: left; }
+    .overall-strip { display: flex; gap: 3px; width: 100%; margin-bottom: 14px; }
+    .strip-piece {
+      height: 4px; border-radius: 2px; flex-shrink: 0;
+      opacity: 0.25; transition: opacity 0.4s;
+    }
+    .strip-piece.done { opacity: 0.45; }
+    .strip-piece.active { opacity: 1; }
+    .next-up { font-size: 12px; color: rgba(255,255,255,0.32); min-height: 18px; }
+    .next-up strong { color: rgba(255,255,255,0.58); }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #22233a; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<div class="top-banner">
+  From Apple: enjoy your free trial. Explore our <a href="#">app</a>
+</div>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <a href="index.html" class="logo">
+      <img src="assets/myndstream.svg" alt="Myndstream" class="logo-img" />
+    </a>
+    <ul class="nav-list">
+      <li><a href="index.html"><span class="icon">⌂</span> Home</a></li>
+      <li><a href="#"><span class="icon">⌕</span> Search</a></li>
+      <li><a href="#"><span class="icon">♡</span> My Favorites</a></li>
+      <li><a href="#"><span class="icon">♪</span> Music Shaker</a></li>
+      <li><a href="#"><span class="icon">◎</span> Zones</a></li>
+    </ul>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section-label">Features</div>
+    <ul class="nav-list">
+      <li><a href="circadian-radio.html"><span class="icon">🌗</span> Circadian Radio</a></li>
+      <li><a href="session-filter.html"><span class="icon">⏱</span> Treatment Timer</a></li>
+      <li><a href="prompted-playlist.html" class="active"><span class="icon">✦</span> Prompted Playlist</a></li>
+    </ul>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section-label">Your Plan</div>
+    <ul class="nav-list">
+      <li><a href="#"><span class="icon">📱</span> Mobile Treatments</a></li>
+    </ul>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-device"><span>🎧</span> Listening on Harriet's iPhone</div>
+      <button class="account-btn">Account</button>
+    </div>
+
+    <!-- VIEW 1: INPUT -->
+    <div id="view-input">
+      <div class="prompt-hero">
+        <div class="prompt-badge">✦ AI Playlist Generator</div>
+        <h1 class="prompt-title">Prompted Playlist</h1>
+        <p class="prompt-subtitle">Describe your session in plain English and we'll build a perfectly matched playlist for every moment — treatments, breaks and all.</p>
+      </div>
+
+      <textarea
+        class="prompt-textarea"
+        id="promptInput"
+        placeholder="e.g. I have a 1 hour deep tissue followed by a 30 minute sports massage and then a 45 minute facial. There is a 15 minute break between each."
+        rows="5"
+      ></textarea>
+
+      <div class="examples-label">Try an example</div>
+      <div class="example-chips">
+        <button class="example-chip" onclick="fillExample(this)">60 min relaxation massage</button>
+        <button class="example-chip" onclick="fillExample(this)">90 minute deep tissue session</button>
+        <button class="example-chip" onclick="fillExample(this)">1 hour Swedish massage followed by a 30 minute facial with a 10 minute break in between</button>
+        <button class="example-chip" onclick="fillExample(this)">45 min sports massage then 45 min recovery and 20 min meditation with 10 min breaks between each</button>
+        <button class="example-chip" onclick="fillExample(this)">Full day spa: 1 hour deep tissue, 1 hour facial, 30 minute breathwork. 15 minute breaks between each.</button>
+      </div>
+
+      <button class="generate-btn" onclick="generate()">
+        <span class="spark">✦</span> Generate My Playlist
+      </button>
+    </div>
+
+    <!-- VIEW 2: LOADING -->
+    <div id="view-loading">
+      <div class="loading-orb">✦</div>
+      <div class="loading-status" id="loadingStatus">Reading your session...</div>
+      <div class="loading-feed" id="loadingFeed"></div>
+    </div>
+
+    <!-- VIEW 3: RESULTS -->
+    <div id="view-results">
+      <div class="results-scroll">
+        <div class="results-hdr">
+          <div>
+            <div class="results-title">Your Session Playlist</div>
+            <div class="results-meta" id="resultsMeta"></div>
+          </div>
+          <button class="retry-btn" onclick="showView('view-input')">↺ Try again</button>
+        </div>
+        <div id="timeline"></div>
+      </div>
+      <div class="start-bar">
+        <button class="start-btn" onclick="startSession()">▶ &nbsp;Start Full Session</button>
+      </div>
+    </div>
+
+    <!-- VIEW 4: SESSION -->
+    <div id="view-session">
+      <div class="session-bg" id="sessionBg"></div>
+      <div class="session-inner">
+        <div class="session-topbar">
+          <button class="back-btn" onclick="endSession()">← End Session</button>
+          <span class="overall-remain" id="overallRemain"></span>
+        </div>
+        <div class="session-center">
+          <div class="in-session-pill"><div class="live-dot"></div> IN SESSION</div>
+          <div class="sess-emoji" id="sessEmoji"></div>
+          <div class="sess-name" id="sessName"></div>
+          <div class="sess-mood" id="sessMood"></div>
+          <div class="sess-timer" id="sessTimer">00:00</div>
+          <button class="sess-play-btn playing" id="sessPlayBtn" onclick="togglePlay()">
+            <svg class="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <svg class="pause-icon" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+          </button>
+          <div class="sess-track" id="sessTrack"></div>
+          <div class="sess-progress-wrap">
+            <div class="seg-bar-wrap"><div class="seg-bar-fill" id="segFill"></div></div>
+            <div class="seg-bar-label" id="segLabel"></div>
+            <div class="overall-strip" id="overallStrip"></div>
+            <div class="next-up" id="nextUp"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+/* ── DATA ── */
+const TRACKS = {
+  'Pain Relief': [
+    { title: 'Theta Delta Drift',     artist: 'Myndstream',        mins: 18 },
+    { title: 'Deep Tissue Resonance', artist: 'Binaural Lab',      mins: 22 },
+    { title: '174Hz — Pain Gate',     artist: 'Solfeggio Series',  mins: 16 },
+    { title: 'Analgesia Waves',       artist: 'Neural Drift',      mins: 20 },
+    { title: 'Endorphin Release',     artist: 'Frequency Clinic',  mins: 18 },
+  ],
+  'Recovery': [
+    { title: 'Athletic Restore',      artist: 'Sport Science Audio', mins: 13 },
+    { title: 'Muscle Memory',         artist: 'Recovery Works',    mins: 16 },
+    { title: 'Fascia Flow',           artist: 'Myndstream',        mins: 15 },
+    { title: 'Lactic Clearance',      artist: 'Bio Rhythms',       mins: 18 },
+    { title: 'Post-Peak',             artist: 'Athletic Mind',     mins: 12 },
+  ],
+  'Relax': [
+    { title: 'Swedish Tide',          artist: 'Myndstream',        mins: 20 },
+    { title: 'Parasympathetic Drift', artist: 'Calm Systems',      mins: 18 },
+    { title: 'Cortisol Down',         artist: 'Neural Calm',       mins: 22 },
+    { title: 'Body Melt',             artist: 'Deep Ease',         mins: 17 },
+    { title: 'Effleurage',            artist: 'Myndstream',        mins: 19 },
+  ],
+  'Gentle': [
+    { title: 'Silk Atmosphere',       artist: 'Myndstream',        mins: 17 },
+    { title: 'Rose Frequency',        artist: 'Facial Suite',      mins: 14 },
+    { title: 'Collagen Calm',         artist: 'Skin Deep Audio',   mins: 18 },
+    { title: 'Lymph Drift',           artist: 'Gentle Systems',    mins: 16 },
+    { title: 'Luminance',             artist: 'Myndstream',        mins: 13 },
+  ],
+  'Ambient': [
+    { title: 'Interlude',             artist: 'Myndstream',        mins: 8  },
+    { title: 'The Breath Space',      artist: 'Transition Works',  mins: 7  },
+    { title: 'Between',              artist: 'Ambient Suite',     mins: 6  },
+    { title: 'Settling',              artist: 'Myndstream',        mins: 5  },
+  ],
+  'Meditation': [
+    { title: 'Stillpoint',            artist: 'Myndstream',        mins: 20 },
+    { title: 'Third Eye Open',        artist: 'Mindful Works',     mins: 18 },
+    { title: '432Hz Alignment',       artist: 'Solfeggio Series',  mins: 22 },
+    { title: 'No-Mind State',         artist: 'Zen Audio',         mins: 25 },
+  ],
+  'Breathwork': [
+    { title: 'Box Breath Carrier',    artist: 'Myndstream',        mins: 12 },
+    { title: 'Pranayama Drift',       artist: 'Breathe Works',     mins: 15 },
+    { title: 'Coherence Wave',        artist: 'Cardiac Lab',       mins: 20 },
+    { title: 'Wim Hof Undertone',     artist: 'Cold Systems',      mins: 18 },
+  ],
+  'Sleep': [
+    { title: 'Delta Cascade',         artist: 'Sleep Science',     mins: 30 },
+    { title: 'Night Drift',           artist: 'Myndstream',        mins: 45 },
+    { title: 'REM Architecture',      artist: 'Sleep Lab',         mins: 60 },
+  ],
+};
+
+const TREATMENTS = {
+  deep_tissue:    { type: 'Deep Tissue Massage', emoji: '💆', mood: 'Pain Relief', key: 'Pain Relief', dot: '#e55', border: '#3d1010', card: 'rgba(80,24,24,0.3)',  moodColor: '#e55',   bgAccent: '#2a0808' },
+  sports_massage: { type: 'Sports Massage',       emoji: '🏃', mood: 'Recovery',    key: 'Recovery',    dot: '#2ecc71', border: '#0d3320', card: 'rgba(26,72,48,0.3)',  moodColor: '#2ecc71', bgAccent: '#072010' },
+  swedish:        { type: 'Swedish Massage',      emoji: '🌊', mood: 'Relax',       key: 'Relax',       dot: '#5bacd4', border: '#0d2a40', card: 'rgba(22,48,96,0.3)',  moodColor: '#5bacd4', bgAccent: '#071520' },
+  facial:         { type: 'Facial',               emoji: '✨', mood: 'Gentle Flow', key: 'Gentle',      dot: '#c39bd3', border: '#2d1040', card: 'rgba(58,32,96,0.3)',  moodColor: '#c39bd3', bgAccent: '#170828' },
+  meditation:     { type: 'Meditation',           emoji: '🧘', mood: 'Meditation',  key: 'Meditation',  dot: '#1abc9c', border: '#0d3030', card: 'rgba(22,80,70,0.3)',  moodColor: '#1abc9c', bgAccent: '#071818' },
+  breathwork:     { type: 'Breathwork',           emoji: '🌬', mood: 'Breathwork',  key: 'Breathwork',  dot: '#5bacd4', border: '#0d2a3a', card: 'rgba(22,56,80,0.3)',  moodColor: '#5bacd4', bgAccent: '#071520' },
+  yoga:           { type: 'Yoga & Stretching',    emoji: '🤸', mood: 'Gentle Flow', key: 'Gentle',      dot: '#f1c40f', border: '#3d2e08', card: 'rgba(70,54,10,0.3)',  moodColor: '#f1c40f', bgAccent: '#1a1404' },
+  hot_stone:      { type: 'Hot Stone Massage',    emoji: '🪨', mood: 'Relax',       key: 'Relax',       dot: '#e59866', border: '#3d1f08', card: 'rgba(80,40,10,0.3)',  moodColor: '#e59866', bgAccent: '#1a0c04' },
+  reiki:          { type: 'Reiki',                emoji: '🔮', mood: 'Meditation',  key: 'Meditation',  dot: '#a569bd', border: '#2d1040', card: 'rgba(58,32,80,0.3)',  moodColor: '#a569bd', bgAccent: '#170828' },
+  sleep:          { type: 'Sleep',                emoji: '🌙', mood: 'Sleep',       key: 'Sleep',       dot: '#5c6bc0', border: '#090e2a', card: 'rgba(17,31,80,0.3)',  moodColor: '#5c6bc0', bgAccent: '#05081a' },
+  relaxation:     { type: 'Relaxation',           emoji: '🌿', mood: 'Relax',       key: 'Relax',       dot: '#27ae60', border: '#0d3320', card: 'rgba(26,72,48,0.3)',  moodColor: '#27ae60', bgAccent: '#072010' },
+  brk:            { type: 'Break',                emoji: '☕', mood: 'Ambient',     key: 'Ambient',     dot: '#85929e', isBreak: true },
+};
+
+/* ── PARSING ── */
+function classify(label) {
+  const l = label.toLowerCase();
+  if (/deep[\s-]?tissue/i.test(l))                  return TREATMENTS.deep_tissue;
+  if (/sports?[\s-]?massage|sports?[\s-]?therapy/i.test(l)) return TREATMENTS.sports_massage;
+  if (/swedish/i.test(l))                            return TREATMENTS.swedish;
+  if (/facial|face[\s-]?treat/i.test(l))            return TREATMENTS.facial;
+  if (/meditat/i.test(l))                            return TREATMENTS.meditation;
+  if (/\byoga\b|stretch/i.test(l))                  return TREATMENTS.yoga;
+  if (/hot[\s-]?stone/i.test(l))                    return TREATMENTS.hot_stone;
+  if (/\breiki\b/i.test(l))                         return TREATMENTS.reiki;
+  if (/breath/i.test(l))                             return TREATMENTS.breathwork;
+  if (/\bsleep\b/i.test(l))                         return TREATMENTS.sleep;
+  if (/\bbreak\b|\brest\b|\binterval\b|\bgap\b/i.test(l)) return TREATMENTS.brk;
+  if (/massage/i.test(l))                            return TREATMENTS.relaxation;
+  return TREATMENTS.relaxation;
+}
+
+function toMins(amount, unit) {
+  return unit[0] === 'h' ? Math.round(parseFloat(amount) * 60) : parseInt(amount);
+}
+
+function pickTracks(key, totalMins) {
+  const pool = TRACKS[key] || TRACKS['Relax'];
+  const out = []; let filled = 0; let i = 0;
+  while (filled < totalMins && out.length < 6) {
+    out.push(pool[i % pool.length]);
+    filled += pool[i % pool.length].mins;
+    i++;
+  }
+  return out;
+}
+
+function parseInput(raw) {
+  let text = raw;
+
+  // Extract "N min/hr break between each"
+  let autoBreak = 0;
+  const abRe = /(\d+(?:\.\d+)?)\s*(hour|hr|h\b|minute|min|m\b)s?\s+break\s+between\s+(?:each|them|sessions?|treatments?)/i;
+  const abM = text.match(abRe);
+  if (abM) { autoBreak = toMins(abM[1], abM[2]); text = text.replace(abRe, ''); }
+
+  // Find (number)(unit)(label) segments
+  const re = /(\d+(?:\.\d+)?)\s*(hours?|hrs?|h\b|minutes?|mins?|m\b)\s+([a-z][a-z ,&'\-]{1,50}?)(?=\s*(?:and then|followed by|then\b|and\b|with\b|,|[.!?]|$)|\s*\d)/gi;
+  const raw2 = [];
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    const mins = toMins(m[1], m[2]);
+    const label = m[3].trim().replace(/^(a |an |the )/i, '');
+    if (mins >= 1 && mins <= 600) raw2.push({ mins, label });
+  }
+
+  if (raw2.length === 0) {
+    // fallback: look for just a number + unit with no treatment label
+    const simple = raw.match(/(\d+(?:\.\d+)?)\s*(hour|hr|minute|min)s?/i);
+    if (simple) {
+      const mins = toMins(simple[1], simple[2]);
+      const t = TREATMENTS.relaxation;
+      return [{ treatment: t, mins, tracks: pickTracks(t.key, mins) }];
+    }
+    const t = TREATMENTS.relaxation;
+    return [{ treatment: t, mins: 60, tracks: pickTracks(t.key, 60) }];
+  }
+
+  // Separate non-breaks from explicit breaks
+  const treatments = raw2.filter(s => !classify(s.label).isBreak);
+  const explicitBreaks = raw2.filter(s => classify(s.label).isBreak);
+
+  const segs = [];
+  if (autoBreak > 0) {
+    treatments.forEach((s, i) => {
+      const t = classify(s.label);
+      segs.push({ treatment: t, mins: s.mins, tracks: pickTracks(t.key, s.mins) });
+      if (i < treatments.length - 1) {
+        segs.push({ treatment: TREATMENTS.brk, mins: autoBreak, tracks: pickTracks('Ambient', autoBreak) });
+      }
+    });
+  } else {
+    // Merge in order (treatments + explicit breaks as found)
+    raw2.forEach(s => {
+      const t = classify(s.label);
+      segs.push({ treatment: t, mins: s.mins, tracks: pickTracks(t.key, s.mins) });
+    });
+  }
+
+  return segs;
+}
+
+/* ── UTILITIES ── */
+function fmtMins(m) {
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60), rem = m % 60;
+  return rem ? `${h}h ${rem}m` : `${h}h`;
+}
+function fmtSecs(s) {
+  const m = Math.floor(s / 60), sec = s % 60;
+  return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+function trackDur(mins) {
+  return `${String(Math.floor(mins)).padStart(2,'0')}:00`;
+}
+
+/* ── VIEW SWITCHING ── */
+function showView(id) {
+  document.querySelectorAll('#view-input,#view-loading,#view-results,#view-session')
+    .forEach(el => { el.style.display = 'none'; });
+  const el = document.getElementById(id);
+  el.style.display = 'flex';
+  el.style.flexDirection = 'column';
+}
+
+/* ── GENERATION ── */
+let segments = [];
+
+function fillExample(btn) {
+  document.getElementById('promptInput').value = btn.textContent.trim();
+}
+
+function generate() {
+  const text = document.getElementById('promptInput').value.trim();
+  if (!text) { document.getElementById('promptInput').focus(); return; }
+  segments = parseInput(text);
+  runLoading(segments);
+}
+
+function runLoading(segs) {
+  showView('view-loading');
+  const statusEl = document.getElementById('loadingStatus');
+  const feedEl = document.getElementById('loadingFeed');
+  feedEl.innerHTML = '';
+
+  const statuses = [
+    { t: 0,    msg: 'Reading your session...' },
+    { t: 700,  msg: 'Identifying treatment types...' },
+    { t: 1300, msg: 'Matching therapeutic frequencies...' },
+    { t: 1800 + segs.length * 350, msg: 'Building your playlist...' },
+  ];
+  statuses.forEach(s => setTimeout(() => { statusEl.textContent = s.msg; }, s.t));
+
+  let total = 0;
+  segs.forEach((seg, i) => {
+    total += seg.mins;
+    setTimeout(() => {
+      const row = document.createElement('div');
+      row.className = 'feed-row';
+      row.innerHTML = `
+        <div class="feed-dot" style="background:${seg.treatment.dot}"></div>
+        <span class="feed-name">${seg.treatment.type}</span>
+        <span class="feed-dur">${fmtMins(seg.mins)}</span>
+      `;
+      feedEl.appendChild(row);
+
+      if (i === segs.length - 1) {
+        setTimeout(() => {
+          const tot = document.createElement('div');
+          tot.className = 'feed-total';
+          tot.innerHTML = `<span>Total Session</span><span>${fmtMins(total)}</span>`;
+          feedEl.appendChild(tot);
+        }, 350);
+      }
+    }, 1200 + i * 350);
+  });
+
+  const totalDelay = 1200 + segs.length * 350 + 1000;
+  setTimeout(() => renderResults(segs), totalDelay);
+}
+
+/* ── RESULTS ── */
+function renderResults(segs) {
+  showView('view-results');
+
+  const totalMins = segs.reduce((a, s) => a + s.mins, 0);
+  const tCount = segs.filter(s => !s.treatment.isBreak).length;
+  const bCount = segs.filter(s => s.treatment.isBreak).length;
+  document.getElementById('resultsMeta').textContent =
+    `${fmtMins(totalMins)} total · ${tCount} treatment${tCount !== 1 ? 's' : ''}${bCount ? ` · ${bCount} break${bCount !== 1 ? 's' : ''}` : ''}`;
+
+  const tl = document.getElementById('timeline');
+  tl.innerHTML = '';
+
+  segs.forEach((seg, i) => {
+    const isLast = i === segs.length - 1;
+    const row = document.createElement('div');
+    row.className = 'seg-row';
+
+    const connector = isLast ? '' : '<div class="seg-connector"></div>';
+
+    if (seg.treatment.isBreak) {
+      row.innerHTML = `
+        <div class="seg-spine">
+          <div class="seg-dot" style="color:${seg.treatment.dot};border-color:${seg.treatment.dot}"></div>
+          ${connector}
+        </div>
+        <div class="break-card">
+          <span>${seg.treatment.emoji}</span>
+          ${seg.treatment.type} &nbsp;·&nbsp; ${fmtMins(seg.mins)} &nbsp;·&nbsp; Gentle ambient
+        </div>
+      `;
+    } else {
+      const tracksHtml = seg.tracks.slice(0, 4).map(t => `
+        <div class="track-row">
+          <div class="track-left">
+            <span class="track-bullet">♪</span>
+            <span class="track-name">${t.title}</span>
+            <span class="track-artist">— ${t.artist}</span>
+          </div>
+          <span class="track-dur">${trackDur(t.mins)}</span>
+        </div>
+      `).join('');
+
+      row.innerHTML = `
+        <div class="seg-spine">
+          <div class="seg-dot" style="color:${seg.treatment.dot};border-color:${seg.treatment.dot}"></div>
+          ${connector}
+        </div>
+        <div class="seg-card" style="background:${seg.treatment.card};border-color:${seg.treatment.border}">
+          <div class="seg-card-header">
+            <div class="seg-emoji">${seg.treatment.emoji}</div>
+            <div>
+              <div class="seg-name">${seg.treatment.type}</div>
+              <div class="seg-tags">
+                <span class="dur-badge">${fmtMins(seg.mins)}</span>
+                <span class="mood-badge" style="color:${seg.treatment.moodColor};border-color:${seg.treatment.moodColor}">${seg.treatment.mood}</span>
+              </div>
+            </div>
+          </div>
+          <div class="seg-tracks">${tracksHtml}</div>
+        </div>
+      `;
+    }
+    tl.appendChild(row);
+  });
+}
+
+/* ── SESSION ── */
+let playing = false;
+let ticker = null;
+let curIdx = 0;
+let segSecsLeft = 0;
+let totalSecsLeft = 0;
+let totalSecs = 0;
+
+function startSession() {
+  showView('view-session');
+  totalSecs = segments.reduce((a, s) => a + s.mins * 60, 0);
+  totalSecsLeft = totalSecs;
+  curIdx = 0;
+  buildStrip();
+  loadSeg(0);
+  playing = true;
+  document.getElementById('sessPlayBtn').classList.add('playing');
+  clearInterval(ticker);
+  ticker = setInterval(tick, 1000);
+}
+
+function buildStrip() {
+  const strip = document.getElementById('overallStrip');
+  strip.innerHTML = '';
+  const total = segments.reduce((a, s) => a + s.mins, 0);
+  segments.forEach((seg, i) => {
+    const el = document.createElement('div');
+    el.className = 'strip-piece';
+    el.id = `piece-${i}`;
+    el.style.cssText = `width:${(seg.mins / total) * 100}%;background:${seg.treatment.dot}`;
+    strip.appendChild(el);
+  });
+  refreshStrip();
+}
+
+function refreshStrip() {
+  segments.forEach((_, i) => {
+    const el = document.getElementById(`piece-${i}`);
+    if (!el) return;
+    el.className = 'strip-piece';
+    if (i < curIdx) el.classList.add('done');
+    else if (i === curIdx) el.classList.add('active');
+  });
+}
+
+function loadSeg(idx) {
+  curIdx = idx;
+  const seg = segments[idx];
+  segSecsLeft = seg.mins * 60;
+
+  document.getElementById('sessEmoji').textContent = seg.treatment.emoji;
+  document.getElementById('sessName').textContent = seg.treatment.type;
+  document.getElementById('sessMood').textContent = `${seg.treatment.mood} · ${fmtMins(seg.mins)}`;
+  document.getElementById('sessTimer').textContent = fmtSecs(segSecsLeft);
+  document.getElementById('segFill').style.width = '0%';
+  document.getElementById('segLabel').textContent = '';
+
+  // Update background accent
+  if (seg.treatment.bgAccent) {
+    document.getElementById('sessionBg').style.background =
+      `linear-gradient(135deg, ${seg.treatment.bgAccent} 0%, #0b0c16 60%)`;
+  }
+
+  updateTrack(seg, 0);
+  updateNextUp(idx);
+  refreshStrip();
+}
+
+function updateTrack(seg, elapsedSecs) {
+  let acc = 0;
+  for (const t of seg.tracks) {
+    acc += t.mins * 60;
+    if (elapsedSecs < acc) {
+      document.getElementById('sessTrack').textContent = `${t.title} — ${t.artist}`;
+      return;
+    }
+  }
+  const last = seg.tracks[seg.tracks.length - 1];
+  if (last) document.getElementById('sessTrack').textContent = `${last.title} — ${last.artist}`;
+}
+
+function updateNextUp(idx) {
+  const next = segments[idx + 1];
+  document.getElementById('nextUp').innerHTML = next
+    ? `Next: <strong>${next.treatment.emoji} ${next.treatment.type} · ${fmtMins(next.mins)}</strong>`
+    : '<strong>Final section</strong>';
+}
+
+function tick() {
+  if (!playing) return;
+  segSecsLeft--;
+  totalSecsLeft--;
+
+  if (segSecsLeft < 0) {
+    const next = curIdx + 1;
+    if (next >= segments.length) {
+      clearInterval(ticker);
+      document.getElementById('sessTimer').textContent = '00:00';
+      document.getElementById('sessTrack').textContent = 'Session complete';
+      document.getElementById('nextUp').textContent = '';
+      document.getElementById('sessPlayBtn').classList.remove('playing');
+      playing = false;
+      return;
+    }
+    loadSeg(next);
+    return;
+  }
+
+  document.getElementById('sessTimer').textContent = fmtSecs(segSecsLeft);
+  document.getElementById('overallRemain').textContent = fmtSecs(totalSecsLeft) + ' remaining';
+
+  const seg = segments[curIdx];
+  const segTotal = seg.mins * 60;
+  const elapsed = segTotal - segSecsLeft;
+  document.getElementById('segFill').style.width = `${(elapsed / segTotal) * 100}%`;
+  document.getElementById('segLabel').textContent =
+    `${fmtSecs(elapsed)} elapsed · ${fmtSecs(segSecsLeft)} remaining in section`;
+
+  updateTrack(seg, elapsed);
+}
+
+function togglePlay() {
+  playing = !playing;
+  document.getElementById('sessPlayBtn').classList.toggle('playing', playing);
+}
+
+function endSession() {
+  clearInterval(ticker);
+  playing = false;
+  renderResults(segments);
+}
+
+/* ── NAV ── */
+document.querySelectorAll('.nav-list a').forEach(link => {
+  link.addEventListener('click', function(e) {
+    if (this.getAttribute('href') === '#') {
+      e.preventDefault();
+      document.querySelectorAll('.nav-list a').forEach(l => l.classList.remove('active'));
+      this.classList.add('active');
+    }
+  });
+});
+</script>
+</body>
+</html>
