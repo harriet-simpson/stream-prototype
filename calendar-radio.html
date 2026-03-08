@@ -82,7 +82,7 @@
       text-align: center;
     }
     .int-card:hover { transform: translateY(-2px); background: #161727; border-color: #2a2b40; }
-    .int-logo { font-size: 17px; font-weight: 700; letter-spacing: 0.5px; line-height: 1.2; }
+    .int-logo { font-size: 15px; font-weight: 600; letter-spacing: 0.5px; line-height: 1.2; color: #7dd3e8; font-style: normal; }
     .int-card-name { font-size: 12px; color: #9a9bb8; }
     .int-card-tag {
       font-size: 9.5px; color: #4a4b62; text-transform: uppercase;
@@ -180,6 +180,22 @@
       cursor: pointer; font-family: inherit; transition: all 0.15s; flex-shrink: 0;
     }
     .change-btn:hover { color: #c0c1d8; border-color: #3a3b58; }
+    .cal-header-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .override-btn {
+      background: none; border: 1px solid #22233a; border-radius: 18px;
+      padding: 7px 16px; color: #6a7090; font-size: 12px;
+      cursor: pointer; font-family: inherit; transition: all 0.15s;
+    }
+    .override-btn:hover { color: #c0c1d8; border-color: #3a3b58; }
+    .cal-play-btn {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, #5bacd4 0%, #7b6cf8 100%);
+      border-radius: 50%; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.15s, filter 0.15s; flex-shrink: 0;
+    }
+    .cal-play-btn:hover { transform: scale(1.08); filter: brightness(1.1); }
+    .cal-play-btn svg { width: 13px; height: 13px; fill: #fff; margin-left: 2px; }
 
     .cal-events { margin-bottom: 20px; }
     .cal-event-row {
@@ -221,13 +237,6 @@
     }
     .cal-info-box strong { color: #aec8e0; }
 
-    .start-radio-btn {
-      width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
-      border: none; border-radius: 26px; padding: 15px;
-      color: #fff; font-size: 15px; font-weight: 700; font-family: inherit;
-      cursor: pointer; transition: transform 0.15s, filter 0.15s;
-    }
-    .start-radio-btn:hover { transform: scale(1.01); filter: brightness(1.08); }
 
     /* ══ VIEW 4: DAY RADIO ══ */
     #view-radio { flex: 1; display: none; overflow: hidden; }
@@ -404,21 +413,16 @@
     <div class="sidebar-divider"></div>
     <div class="sidebar-section-label">Features</div>
     <ul class="nav-list">
-      <li><a href="circadian-radio.html"><span class="icon">🌗</span> Circadian Radio</a></li>
-      <li><a href="session-filter.html"><span class="icon">⏱</span> Treatment Timer</a></li>
+      <li><a href="circadian-radio.html"><span class="icon"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><circle cx="6" cy="6" r="1.8" fill="currentColor"/><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/></svg></span> Circadian Radio</a></li>
+      <li><a href="session-filter.html"><span class="icon"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/><path d="M6 3.5v2.5l1.8 1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Treatment Timer</a></li>
+      <li><a href="calendar-radio.html" class="active"><span class="icon"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><rect x="0.5" y="2" width="11" height="9.5" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M0.5 5.5h11" stroke="currentColor" stroke-width="1.2"/><path d="M3.5 0.5v3M8.5 0.5v3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span> Calendar Sync</a></li>
       <li><a href="prompted-playlist.html"><span class="icon">✦</span> Prompted Playlist</a></li>
-      <li><a href="calendar-radio.html" class="active"><span class="icon">📅</span> Calendar Sync</a></li>
-    </ul>
-    <div class="sidebar-divider"></div>
-    <div class="sidebar-section-label">Your Plan</div>
-    <ul class="nav-list">
-      <li><a href="#"><span class="icon">📱</span> Mobile Treatments</a></li>
     </ul>
   </nav>
 
   <main class="main">
     <div class="topbar">
-      <div class="topbar-device"><span>🎧</span> Listening on Harriet's iPhone</div>
+      <div class="topbar-device">Listening on Harriet's iPhone</div>
       <button class="account-btn">Account</button>
     </div>
 
@@ -466,7 +470,13 @@
             <div class="cal-title">Today's Schedule</div>
             <div class="cal-date-line" id="calDateLine"></div>
           </div>
-          <button class="change-btn" onclick="showView('view-integrations')">Change source</button>
+          <div class="cal-header-actions">
+            <button class="change-btn" onclick="showView('view-integrations')">Change source</button>
+            <button class="override-btn" onclick="">Override</button>
+            <button class="cal-play-btn" id="startRadioBtn" onclick="startDayRadio()">
+              <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+          </div>
         </div>
 
         <div class="cal-summary" id="calSummary"></div>
@@ -477,9 +487,6 @@
           <strong>Calendar Sync is always on.</strong> Unlike a playlist, you never press play or choose a track — Myndstream reads your schedule and streams the right music for every moment, adapting automatically as sessions change.
         </div>
 
-        <button class="start-radio-btn" id="startRadioBtn" onclick="startDayRadio()">
-          Start Calendar Sync
-        </button>
       </div>
     </div>
 
@@ -493,14 +500,16 @@
 
           <div class="radio-topbar">
             <button class="disconnect-btn" onclick="disconnect()">← Disconnect</button>
-            <button class="mute-btn" id="muteBtn" onclick="toggleMute()">
-              <span id="muteIcon">🔊</span> <span id="muteLabel">Mute</span>
-            </button>
+            <div style="display:flex;gap:8px;">
+              <button class="mute-btn" onclick="">Override</button>
+              <button class="mute-btn" id="muteBtn" onclick="toggleMute()">
+                <span id="muteLabel">Mute</span>
+              </button>
+            </div>
           </div>
 
           <div class="radio-content">
             <div class="radio-live-pill"><div class="live-dot"></div> LIVE · DAY RADIO</div>
-            <div class="radio-emoji" id="radioEmoji">💆</div>
             <div class="radio-treatment-name" id="radioName">Deep Tissue Massage</div>
             <div class="radio-mood" id="radioMood">Pain Relief</div>
 
@@ -567,15 +576,15 @@ const LOGO_STYLES = {
 };
 
 const TYPES = {
-  deep_tissue:    { label: 'Deep Tissue Massage', emoji: '💆', mood: 'Pain Relief',  dot: '#ef4444', bg: '#2a0808' },
-  sports_massage: { label: 'Sports Massage',       emoji: '🏃', mood: 'Recovery',     dot: '#22c55e', bg: '#072010' },
-  swedish:        { label: 'Swedish Massage',       emoji: '🌊', mood: 'Relax',        dot: '#38bdf8', bg: '#071a28' },
-  facial:         { label: 'Facial',                emoji: '✨', mood: 'Gentle Flow',  dot: '#c084fc', bg: '#180828' },
-  hot_stone:      { label: 'Hot Stone Massage',     emoji: '🪨', mood: 'Relax',        dot: '#fb923c', bg: '#1a0c04' },
-  reiki:          { label: 'Reiki',                 emoji: '🔮', mood: 'Meditation',   dot: '#a78bfa', bg: '#150828' },
-  meditation:     { label: 'Meditation',            emoji: '🧘', mood: 'Meditation',   dot: '#34d399', bg: '#071818' },
-  breathwork:     { label: 'Breathwork',            emoji: '🌬', mood: 'Breathwork',   dot: '#60a5fa', bg: '#071428' },
-  brk:            { label: 'Break',                 emoji: '☕', mood: '',             dot: '#64748b', bg: '#0b0c16', isBreak: true },
+  deep_tissue:    { label: 'Deep Tissue Massage', mood: 'Pain Relief',  dot: '#ef4444', bg: '#2a0808' },
+  sports_massage: { label: 'Sports Massage',       mood: 'Recovery',     dot: '#22c55e', bg: '#072010' },
+  swedish:        { label: 'Swedish Massage',       mood: 'Relax',        dot: '#38bdf8', bg: '#071a28' },
+  facial:         { label: 'Facial',                mood: 'Gentle Flow',  dot: '#c084fc', bg: '#180828' },
+  hot_stone:      { label: 'Hot Stone Massage',     mood: 'Relax',        dot: '#fb923c', bg: '#1a0c04' },
+  reiki:          { label: 'Reiki',                 mood: 'Meditation',   dot: '#a78bfa', bg: '#150828' },
+  meditation:     { label: 'Meditation',            mood: 'Meditation',   dot: '#34d399', bg: '#071818' },
+  breathwork:     { label: 'Breathwork',            mood: 'Breathwork',   dot: '#60a5fa', bg: '#071428' },
+  brk:            { label: 'Break',                 mood: '',             dot: '#64748b', bg: '#0b0c16', isBreak: true },
 };
 
 const RADIO_TRACKS = {
@@ -655,7 +664,7 @@ function renderGrid(containerId, items) {
   const grid = document.getElementById(containerId);
   grid.innerHTML = items.map(it => `
     <div class="int-card" onclick="selectIntegration('${it.id}')">
-      <div class="int-logo" style="color:${it.color};${LOGO_STYLES[it.id] || ''}">${it.name}</div>
+      <div class="int-logo">${it.name}</div>
       <div class="int-card-tag">${it.tag}</div>
       <div class="int-card-arrow">Connect →</div>
     </div>
@@ -669,7 +678,6 @@ function selectIntegration(id) {
   showView('view-auth');
 
   document.getElementById('authLogo').textContent = selectedInt.name;
-  document.getElementById('authLogo').style.cssText = `color:${selectedInt.color};${LOGO_STYLES[id] || ''}`;
   document.getElementById('authTitle').textContent = `Connect to ${selectedInt.name}`;
   document.getElementById('authLoading').style.display = 'none';
 
@@ -680,7 +688,7 @@ function selectIntegration(id) {
     document.getElementById('authNote').textContent = `You'll be redirected to ${selectedInt.name} to sign in securely.`;
     wrap.innerHTML = `
       <button class="oauth-btn" onclick="submitAuth()" style="border-color:${selectedInt.color}33;">
-        <span style="font-size:16px">🔐</span> ${selectedInt.oauthLabel}
+        ${selectedInt.oauthLabel}
       </button>
     `;
   } else {
@@ -785,10 +793,6 @@ function showCalendarPreview() {
     <div class="cal-stat"><div class="cal-stat-num" style="color:${selectedInt.color}">${fmtMins(totalMins)}</div><div class="cal-stat-label">Total Day</div></div>
   `;
 
-  // Start button colour
-  const btn = document.getElementById('startRadioBtn');
-  btn.style.background = `linear-gradient(135deg, ${selectedInt.color} 0%, #7b6cf8 100%)`;
-
   // Events list
   const cidx = findCurrentIdx();
   const eventsEl = document.getElementById('calEvents');
@@ -848,7 +852,6 @@ function loadSegment(idx) {
   const seg = schedule[idx];
   const t = seg.treatment;
 
-  document.getElementById('radioEmoji').textContent = t.emoji;
   document.getElementById('radioName').textContent = t.label;
   document.getElementById('radioMood').textContent = t.mood || 'Ambient';
   document.getElementById('radioClient').textContent = seg.detail || '';
@@ -950,7 +953,6 @@ function updateScheduleHighlight() {
 
 function toggleMute() {
   isMuted = !isMuted;
-  document.getElementById('muteIcon').textContent = isMuted ? '🔇' : '🔊';
   document.getElementById('muteLabel').textContent = isMuted ? 'Unmute' : 'Mute';
 }
 

@@ -442,37 +442,17 @@
     <div class="sidebar-divider"></div>
     <div class="sidebar-section-label">Features</div>
     <ul class="nav-list">
-      <li><a href="circadian-radio.html"><span class="icon">🌗</span> Circadian Radio</a></li>
-      <li><a href="session-filter.html"><span class="icon">⏱</span> Treatment Timer</a></li>
+      <li><a href="circadian-radio.html"><span class="icon"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><circle cx="6" cy="6" r="1.8" fill="currentColor"/><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/></svg></span> Circadian Radio</a></li>
+      <li><a href="session-filter.html"><span class="icon"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/><path d="M6 3.5v2.5l1.8 1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Treatment Timer</a></li>
+      <li><a href="calendar-radio.html"><span class="icon"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><rect x="0.5" y="2" width="11" height="9.5" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M0.5 5.5h11" stroke="currentColor" stroke-width="1.2"/><path d="M3.5 0.5v3M8.5 0.5v3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span> Calendar Sync</a></li>
       <li><a href="prompted-playlist.html"><span class="icon">✦</span> Prompted Playlist</a></li>
-      <li><a href="calendar-radio.html"><span class="icon">📅</span> Calendar Sync</a></li>
     </ul>
-
-    <div class="sidebar-divider"></div>
-    <div class="sidebar-section-label">Your Plan</div>
-    <ul class="nav-list">
-      <li><a href="#"><span class="icon">📱</span> Mobile Treatments</a></li>
-    </ul>
-
-    <div class="sidebar-divider"></div>
-
-    <div class="sidebar-promo">
-      <div class="sidebar-promo-label">Elevate your streaming experience</div>
-      <div class="sidebar-promo-thumb">🎵</div>
-    </div>
-
-    <div class="sidebar-section-label">Featured Play</div>
-    <div class="sidebar-featured">
-      <div class="sidebar-featured-title">Featured Play (175+)</div>
-      <div class="sidebar-featured-sub">Premium soundscapes</div>
-    </div>
   </nav>
 
   <!-- ═══ MAIN ═══ -->
   <main class="main">
     <div class="topbar">
-      <div class="topbar-device"><span>🎧</span> Listening on Harriet's iPhone</div>
-      <div class="topbar-plan">Mobile Treatments</div>
+      <div class="topbar-device">Listening on Harriet's iPhone</div>
       <button class="account-btn">Account</button>
     </div>
 
@@ -483,7 +463,7 @@
 
       <!-- Featured Track -->
       <div class="featured-track" onclick="toggleFeatured(this)">
-        <div class="featured-thumb">🧠</div>
+        <div class="featured-thumb"></div>
         <div class="featured-info">
           <div class="featured-title">Pain Relief (60m)</div>
           <div class="featured-meta">1 hr 12 min</div>
@@ -497,14 +477,14 @@
       <div class="now-playing">
         <div class="np-title">Elevated Atmosphere</div>
         <div class="np-controls">
-          <button class="ctrl" onclick="prevTrack()" title="Previous">⏮</button>
-          <button class="ctrl main-ctrl" id="mainPlayBtn" onclick="togglePlayPause()" title="Play/Pause">⏸</button>
-          <button class="ctrl" onclick="nextTrack()" title="Next">⏭</button>
+          <button class="ctrl" onclick="prevTrack()" title="Previous">&#171;&#171;</button>
+          <button class="ctrl main-ctrl" id="mainPlayBtn" onclick="togglePlayPause()" title="Play/Pause">&#9646;&#9646;</button>
+          <button class="ctrl" onclick="nextTrack()" title="Next">&#187;&#187;</button>
         </div>
         <div class="progress-wrap" onclick="seekProgress(event, this)">
           <div class="progress-fill" id="progressFill"></div>
         </div>
-        <button class="vol-btn" id="volBtn" onclick="toggleMute()" title="Volume">🔊</button>
+        <button class="vol-btn" id="volBtn" onclick="toggleMute()" title="Volume">Vol</button>
       </div>
 
       <!-- Guest Personalization -->
@@ -588,7 +568,7 @@
           <div class="music-card" onclick="lockedCard()">
             <div class="bg bg-psychedelic"></div>
             <div class="label">Psychedelic</div>
-            <div class="lock-badge">🔒</div>
+            <div class="lock-badge">⊘</div>
           </div>
         </div>
       </div>
@@ -676,7 +656,7 @@
           <button class="dur-btn active" onclick="selectDuration(this)">60 minutes</button>
           <button class="dur-btn" onclick="selectDuration(this)">90 minutes</button>
           <button class="dur-btn" onclick="selectDuration(this)">Over 3 hours</button>
-          <button class="dur-btn span-2" onclick="window.location.href='circadian-radio.html'">🌗 All day — Circadian Radio</button>
+          <button class="dur-btn span-2" onclick="window.location.href='circadian-radio.html'">All day — Circadian Radio</button>
         </div>
       </div>
 
@@ -711,7 +691,7 @@
         <div class="card-grid-2">
           <div class="music-card" onclick="cardClick(this)" style="aspect-ratio:1/0.55;">
             <div class="bg bg-chill"></div>
-            <div class="label" style="color:#888;">Chill (Clas...)</div>
+            <div class="label" style="color:#888;">Chill</div>
           </div>
         </div>
       </div>
@@ -744,7 +724,7 @@
   function togglePlayPause() {
     isPlaying = !isPlaying;
     const btn = document.getElementById('mainPlayBtn');
-    btn.textContent = isPlaying ? '⏸' : '▶';
+    btn.textContent = isPlaying ? '❙❙' : '▶';
     isPlaying ? startTicker() : stopTicker();
   }
 
@@ -766,7 +746,7 @@
 
   function toggleMute() {
     isMuted = !isMuted;
-    document.getElementById('volBtn').textContent = isMuted ? '🔇' : '🔊';
+    document.getElementById('volBtn').textContent = isMuted ? 'Muted' : 'Vol';
   }
 
   function toggleFeatured(card) {

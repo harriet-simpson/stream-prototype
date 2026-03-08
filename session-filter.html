@@ -411,22 +411,17 @@
     <div class="sidebar-divider"></div>
     <div class="sidebar-section-label">Features</div>
     <ul class="nav-list">
-      <li><a href="circadian-radio.html"><span class="icon">🌗</span> Circadian Radio</a></li>
-      <li><a href="session-filter.html" class="active"><span class="icon">⏱</span> Treatment Timer</a></li>
+      <li><a href="circadian-radio.html"><span class="icon"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><circle cx="6" cy="6" r="1.8" fill="currentColor"/><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/></svg></span> Circadian Radio</a></li>
+      <li><a href="session-filter.html" class="active"><span class="icon"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/><path d="M6 3.5v2.5l1.8 1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Treatment Timer</a></li>
+      <li><a href="calendar-radio.html"><span class="icon"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><rect x="0.5" y="2" width="11" height="9.5" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M0.5 5.5h11" stroke="currentColor" stroke-width="1.2"/><path d="M3.5 0.5v3M8.5 0.5v3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span> Calendar Sync</a></li>
       <li><a href="prompted-playlist.html"><span class="icon">✦</span> Prompted Playlist</a></li>
-      <li><a href="calendar-radio.html"><span class="icon">📅</span> Calendar Sync</a></li>
-    </ul>
-    <div class="sidebar-divider"></div>
-    <div class="sidebar-section-label">Your Plan</div>
-    <ul class="nav-list">
-      <li><a href="#"><span class="icon">📱</span> Mobile Treatments</a></li>
     </ul>
   </nav>
 
   <!-- ═══ MAIN ═══ -->
   <main class="main">
     <div class="topbar">
-      <div class="topbar-device"><span>🎧</span> Listening on Harriet's iPhone</div>
+      <div class="topbar-device">Listening on Harriet's iPhone</div>
       <button class="account-btn">Account</button>
     </div>
 
@@ -462,33 +457,28 @@
           <div class="detail-name" id="detailName">Deep Tissue Flow</div>
           <div class="detail-duration" id="detailDur">50 minutes</div>
 
-          <button class="preview-play-btn" id="previewBtn" onclick="togglePreview()">
-            <svg class="play-svg" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-            <svg class="pause-svg" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-          </button>
-
           <div class="end-section">
             <div class="end-label">When this session ends</div>
             <div class="end-options">
               <button class="end-opt active" data-end="silence" onclick="selectEnd(this)">
-                <span class="eo-icon">🔇</span>
                 <span class="eo-name">Silence</span>
                 <span class="eo-desc">Fade to silence</span>
               </button>
               <button class="end-opt" data-end="repeat" onclick="selectEnd(this)">
-                <span class="eo-icon">🔁</span>
                 <span class="eo-name">Repeat</span>
                 <span class="eo-desc">Loop the playlist</span>
               </button>
               <button class="end-opt" data-end="ambient" onclick="selectEnd(this)">
-                <span class="eo-icon">🎵</span>
                 <span class="eo-name">Ambient</span>
                 <span class="eo-desc">Default ambient</span>
               </button>
             </div>
           </div>
 
-          <button class="start-btn" onclick="startSession()">Start Session</button>
+          <button class="preview-play-btn" id="previewBtn" onclick="startSession()">
+            <svg class="play-svg" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <svg class="pause-svg" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+          </button>
         </div>
       </div>
     </div>
@@ -553,7 +543,7 @@
     { id: 'swedish-calm',     name: 'Swedish Calm',       category: 'Relaxation',  duration: 45, img: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=500&q=80&auto=format&fit=crop' },
     { id: 'recovery-flow',    name: 'Recovery Flow',      category: 'Recovery',    duration: 45, img: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=500&q=80&auto=format&fit=crop' },
 
-    { id: 'deep-tissue-flow', name: 'Deep Tissue Flow',   category: 'Pain Relief', duration: 50, img: 'https://images.unsplash.com/photo-1489389944381-3471b5b30f04?w=500&q=80&auto=format&fit=crop' },
+    { id: 'deep-tissue-flow', name: 'Deep Tissue Flow',   category: 'Pain Relief', duration: 50, img: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=500&q=80&auto=format&fit=crop' },
     { id: 'strength-session', name: 'Strength Session',   category: 'Strength',    duration: 50, img: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500&q=80&auto=format&fit=crop' },
     { id: 'reiki-harmony',    name: 'Reiki Harmony',      category: 'Relaxation',  duration: 50, img: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=500&q=80&auto=format&fit=crop' },
 

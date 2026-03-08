@@ -379,22 +379,17 @@
     <div class="sidebar-divider"></div>
     <div class="sidebar-section-label">Features</div>
     <ul class="nav-list">
-      <li><a href="circadian-radio.html"><span class="icon">🌗</span> Circadian Radio</a></li>
-      <li><a href="session-filter.html"><span class="icon">⏱</span> Treatment Timer</a></li>
+      <li><a href="circadian-radio.html"><span class="icon"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><circle cx="6" cy="6" r="1.8" fill="currentColor"/><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/></svg></span> Circadian Radio</a></li>
+      <li><a href="session-filter.html"><span class="icon"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/><path d="M6 3.5v2.5l1.8 1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Treatment Timer</a></li>
+      <li><a href="calendar-radio.html"><span class="icon"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><rect x="0.5" y="2" width="11" height="9.5" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M0.5 5.5h11" stroke="currentColor" stroke-width="1.2"/><path d="M3.5 0.5v3M8.5 0.5v3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span> Calendar Sync</a></li>
       <li><a href="prompted-playlist.html" class="active"><span class="icon">✦</span> Prompted Playlist</a></li>
-      <li><a href="calendar-radio.html"><span class="icon">📅</span> Calendar Sync</a></li>
-    </ul>
-    <div class="sidebar-divider"></div>
-    <div class="sidebar-section-label">Your Plan</div>
-    <ul class="nav-list">
-      <li><a href="#"><span class="icon">📱</span> Mobile Treatments</a></li>
     </ul>
   </nav>
 
   <!-- MAIN -->
   <main class="main">
     <div class="topbar">
-      <div class="topbar-device"><span>🎧</span> Listening on Harriet's iPhone</div>
+      <div class="topbar-device">Listening on Harriet's iPhone</div>
       <button class="account-btn">Account</button>
     </div>
 
@@ -461,7 +456,6 @@
         </div>
         <div class="session-center">
           <div class="in-session-pill"><div class="live-dot"></div> IN SESSION</div>
-          <div class="sess-emoji" id="sessEmoji"></div>
           <div class="sess-name" id="sessName"></div>
           <div class="sess-mood" id="sessMood"></div>
           <div class="sess-timer" id="sessTimer">00:00</div>
@@ -487,71 +481,71 @@
 /* ── DATA ── */
 const TRACKS = {
   'Pain Relief': [
-    { title: 'Theta Delta Drift',     artist: 'Myndstream',        mins: 18 },
-    { title: 'Deep Tissue Resonance', artist: 'Binaural Lab',      mins: 22 },
-    { title: '174Hz — Pain Gate',     artist: 'Solfeggio Series',  mins: 16 },
-    { title: 'Analgesia Waves',       artist: 'Neural Drift',      mins: 20 },
-    { title: 'Endorphin Release',     artist: 'Frequency Clinic',  mins: 18 },
+    { title: 'Theta Delta Drift',     artist: 'Myndstream', mins: 18 },
+    { title: 'Deep Tissue Resonance', artist: 'Myndstream', mins: 22 },
+    { title: '174Hz — Pain Gate',     artist: 'Myndstream', mins: 16 },
+    { title: 'Analgesia Waves',       artist: 'Myndstream', mins: 20 },
+    { title: 'Endorphin Release',     artist: 'Myndstream', mins: 18 },
   ],
   'Recovery': [
-    { title: 'Athletic Restore',      artist: 'Sport Science Audio', mins: 13 },
-    { title: 'Muscle Memory',         artist: 'Recovery Works',    mins: 16 },
-    { title: 'Fascia Flow',           artist: 'Myndstream',        mins: 15 },
-    { title: 'Lactic Clearance',      artist: 'Bio Rhythms',       mins: 18 },
-    { title: 'Post-Peak',             artist: 'Athletic Mind',     mins: 12 },
+    { title: 'Athletic Restore',      artist: 'Myndstream', mins: 13 },
+    { title: 'Muscle Memory',         artist: 'Myndstream', mins: 16 },
+    { title: 'Fascia Flow',           artist: 'Myndstream', mins: 15 },
+    { title: 'Lactic Clearance',      artist: 'Myndstream', mins: 18 },
+    { title: 'Post-Peak',             artist: 'Myndstream', mins: 12 },
   ],
   'Relax': [
-    { title: 'Swedish Tide',          artist: 'Myndstream',        mins: 20 },
-    { title: 'Parasympathetic Drift', artist: 'Calm Systems',      mins: 18 },
-    { title: 'Cortisol Down',         artist: 'Neural Calm',       mins: 22 },
-    { title: 'Body Melt',             artist: 'Deep Ease',         mins: 17 },
-    { title: 'Effleurage',            artist: 'Myndstream',        mins: 19 },
+    { title: 'Swedish Tide',          artist: 'Myndstream', mins: 20 },
+    { title: 'Parasympathetic Drift', artist: 'Myndstream', mins: 18 },
+    { title: 'Cortisol Down',         artist: 'Myndstream', mins: 22 },
+    { title: 'Body Melt',             artist: 'Myndstream', mins: 17 },
+    { title: 'Effleurage',            artist: 'Myndstream', mins: 19 },
   ],
   'Gentle': [
-    { title: 'Silk Atmosphere',       artist: 'Myndstream',        mins: 17 },
-    { title: 'Rose Frequency',        artist: 'Facial Suite',      mins: 14 },
-    { title: 'Collagen Calm',         artist: 'Skin Deep Audio',   mins: 18 },
-    { title: 'Lymph Drift',           artist: 'Gentle Systems',    mins: 16 },
-    { title: 'Luminance',             artist: 'Myndstream',        mins: 13 },
+    { title: 'Silk Atmosphere',       artist: 'Myndstream', mins: 17 },
+    { title: 'Rose Frequency',        artist: 'Myndstream', mins: 14 },
+    { title: 'Collagen Calm',         artist: 'Myndstream', mins: 18 },
+    { title: 'Lymph Drift',           artist: 'Myndstream', mins: 16 },
+    { title: 'Luminance',             artist: 'Myndstream', mins: 13 },
   ],
   'Ambient': [
-    { title: 'Interlude',             artist: 'Myndstream',        mins: 8  },
-    { title: 'The Breath Space',      artist: 'Transition Works',  mins: 7  },
-    { title: 'Between',              artist: 'Ambient Suite',     mins: 6  },
-    { title: 'Settling',              artist: 'Myndstream',        mins: 5  },
+    { title: 'Interlude',             artist: 'Myndstream', mins: 8  },
+    { title: 'The Breath Space',      artist: 'Myndstream', mins: 7  },
+    { title: 'Between',               artist: 'Myndstream', mins: 6  },
+    { title: 'Settling',              artist: 'Myndstream', mins: 5  },
   ],
   'Meditation': [
-    { title: 'Stillpoint',            artist: 'Myndstream',        mins: 20 },
-    { title: 'Third Eye Open',        artist: 'Mindful Works',     mins: 18 },
-    { title: '432Hz Alignment',       artist: 'Solfeggio Series',  mins: 22 },
-    { title: 'No-Mind State',         artist: 'Zen Audio',         mins: 25 },
+    { title: 'Stillpoint',            artist: 'Myndstream', mins: 20 },
+    { title: 'Third Eye Open',        artist: 'Myndstream', mins: 18 },
+    { title: '432Hz Alignment',       artist: 'Myndstream', mins: 22 },
+    { title: 'No-Mind State',         artist: 'Myndstream', mins: 25 },
   ],
   'Breathwork': [
-    { title: 'Box Breath Carrier',    artist: 'Myndstream',        mins: 12 },
-    { title: 'Pranayama Drift',       artist: 'Breathe Works',     mins: 15 },
-    { title: 'Coherence Wave',        artist: 'Cardiac Lab',       mins: 20 },
-    { title: 'Wim Hof Undertone',     artist: 'Cold Systems',      mins: 18 },
+    { title: 'Box Breath Carrier',    artist: 'Myndstream', mins: 12 },
+    { title: 'Pranayama Drift',       artist: 'Myndstream', mins: 15 },
+    { title: 'Coherence Wave',        artist: 'Myndstream', mins: 20 },
+    { title: 'Cold Breath Carrier',   artist: 'Myndstream', mins: 18 },
   ],
   'Sleep': [
-    { title: 'Delta Cascade',         artist: 'Sleep Science',     mins: 30 },
-    { title: 'Night Drift',           artist: 'Myndstream',        mins: 45 },
-    { title: 'REM Architecture',      artist: 'Sleep Lab',         mins: 60 },
+    { title: 'Delta Cascade',         artist: 'Myndstream', mins: 30 },
+    { title: 'Night Drift',           artist: 'Myndstream', mins: 45 },
+    { title: 'REM Architecture',      artist: 'Myndstream', mins: 60 },
   ],
 };
 
 const TREATMENTS = {
-  deep_tissue:    { type: 'Deep Tissue Massage', emoji: '💆', mood: 'Pain Relief', key: 'Pain Relief', dot: '#e55', border: '#3d1010', card: 'rgba(80,24,24,0.3)',  moodColor: '#e55',   bgAccent: '#2a0808' },
-  sports_massage: { type: 'Sports Massage',       emoji: '🏃', mood: 'Recovery',    key: 'Recovery',    dot: '#2ecc71', border: '#0d3320', card: 'rgba(26,72,48,0.3)',  moodColor: '#2ecc71', bgAccent: '#072010' },
-  swedish:        { type: 'Swedish Massage',      emoji: '🌊', mood: 'Relax',       key: 'Relax',       dot: '#5bacd4', border: '#0d2a40', card: 'rgba(22,48,96,0.3)',  moodColor: '#5bacd4', bgAccent: '#071520' },
-  facial:         { type: 'Facial',               emoji: '✨', mood: 'Gentle Flow', key: 'Gentle',      dot: '#c39bd3', border: '#2d1040', card: 'rgba(58,32,96,0.3)',  moodColor: '#c39bd3', bgAccent: '#170828' },
-  meditation:     { type: 'Meditation',           emoji: '🧘', mood: 'Meditation',  key: 'Meditation',  dot: '#1abc9c', border: '#0d3030', card: 'rgba(22,80,70,0.3)',  moodColor: '#1abc9c', bgAccent: '#071818' },
-  breathwork:     { type: 'Breathwork',           emoji: '🌬', mood: 'Breathwork',  key: 'Breathwork',  dot: '#5bacd4', border: '#0d2a3a', card: 'rgba(22,56,80,0.3)',  moodColor: '#5bacd4', bgAccent: '#071520' },
-  yoga:           { type: 'Yoga & Stretching',    emoji: '🤸', mood: 'Gentle Flow', key: 'Gentle',      dot: '#f1c40f', border: '#3d2e08', card: 'rgba(70,54,10,0.3)',  moodColor: '#f1c40f', bgAccent: '#1a1404' },
-  hot_stone:      { type: 'Hot Stone Massage',    emoji: '🪨', mood: 'Relax',       key: 'Relax',       dot: '#e59866', border: '#3d1f08', card: 'rgba(80,40,10,0.3)',  moodColor: '#e59866', bgAccent: '#1a0c04' },
-  reiki:          { type: 'Reiki',                emoji: '🔮', mood: 'Meditation',  key: 'Meditation',  dot: '#a569bd', border: '#2d1040', card: 'rgba(58,32,80,0.3)',  moodColor: '#a569bd', bgAccent: '#170828' },
-  sleep:          { type: 'Sleep',                emoji: '🌙', mood: 'Sleep',       key: 'Sleep',       dot: '#5c6bc0', border: '#090e2a', card: 'rgba(17,31,80,0.3)',  moodColor: '#5c6bc0', bgAccent: '#05081a' },
-  relaxation:     { type: 'Relaxation',           emoji: '🌿', mood: 'Relax',       key: 'Relax',       dot: '#27ae60', border: '#0d3320', card: 'rgba(26,72,48,0.3)',  moodColor: '#27ae60', bgAccent: '#072010' },
-  brk:            { type: 'Break',                emoji: '☕', mood: 'Ambient',     key: 'Ambient',     dot: '#85929e', isBreak: true },
+  deep_tissue:    { type: 'Deep Tissue Massage', mood: 'Pain Relief', key: 'Pain Relief', dot: '#e55', border: '#3d1010', card: 'rgba(80,24,24,0.3)',  moodColor: '#e55',   bgAccent: '#2a0808' },
+  sports_massage: { type: 'Sports Massage',       mood: 'Recovery',    key: 'Recovery',    dot: '#2ecc71', border: '#0d3320', card: 'rgba(26,72,48,0.3)',  moodColor: '#2ecc71', bgAccent: '#072010' },
+  swedish:        { type: 'Swedish Massage',      mood: 'Relax',       key: 'Relax',       dot: '#5bacd4', border: '#0d2a40', card: 'rgba(22,48,96,0.3)',  moodColor: '#5bacd4', bgAccent: '#071520' },
+  facial:         { type: 'Facial',               mood: 'Gentle Flow', key: 'Gentle',      dot: '#c39bd3', border: '#2d1040', card: 'rgba(58,32,96,0.3)',  moodColor: '#c39bd3', bgAccent: '#170828' },
+  meditation:     { type: 'Meditation',           mood: 'Meditation',  key: 'Meditation',  dot: '#1abc9c', border: '#0d3030', card: 'rgba(22,80,70,0.3)',  moodColor: '#1abc9c', bgAccent: '#071818' },
+  breathwork:     { type: 'Breathwork',           mood: 'Breathwork',  key: 'Breathwork',  dot: '#5bacd4', border: '#0d2a3a', card: 'rgba(22,56,80,0.3)',  moodColor: '#5bacd4', bgAccent: '#071520' },
+  yoga:           { type: 'Yoga & Stretching',    mood: 'Gentle Flow', key: 'Gentle',      dot: '#f1c40f', border: '#3d2e08', card: 'rgba(70,54,10,0.3)',  moodColor: '#f1c40f', bgAccent: '#1a1404' },
+  hot_stone:      { type: 'Hot Stone Massage',    mood: 'Relax',       key: 'Relax',       dot: '#e59866', border: '#3d1f08', card: 'rgba(80,40,10,0.3)',  moodColor: '#e59866', bgAccent: '#1a0c04' },
+  reiki:          { type: 'Reiki',                mood: 'Meditation',  key: 'Meditation',  dot: '#a569bd', border: '#2d1040', card: 'rgba(58,32,80,0.3)',  moodColor: '#a569bd', bgAccent: '#170828' },
+  sleep:          { type: 'Sleep',                mood: 'Sleep',       key: 'Sleep',       dot: '#5c6bc0', border: '#090e2a', card: 'rgba(17,31,80,0.3)',  moodColor: '#5c6bc0', bgAccent: '#05081a' },
+  relaxation:     { type: 'Relaxation',           mood: 'Relax',       key: 'Relax',       dot: '#27ae60', border: '#0d3320', card: 'rgba(26,72,48,0.3)',  moodColor: '#27ae60', bgAccent: '#072010' },
+  brk:            { type: 'Break',                mood: 'Ambient',     key: 'Ambient',     dot: '#85929e', isBreak: true },
 };
 
 /* ── PARSING ── */
@@ -748,7 +742,6 @@ function renderResults(segs) {
           ${connector}
         </div>
         <div class="break-card">
-          <span>${seg.treatment.emoji}</span>
           ${seg.treatment.type} &nbsp;·&nbsp; ${fmtMins(seg.mins)} &nbsp;·&nbsp; Gentle ambient
         </div>
       `;
@@ -771,7 +764,6 @@ function renderResults(segs) {
         </div>
         <div class="seg-card" style="background:${seg.treatment.card};border-color:${seg.treatment.border}">
           <div class="seg-card-header">
-            <div class="seg-emoji">${seg.treatment.emoji}</div>
             <div>
               <div class="seg-name">${seg.treatment.type}</div>
               <div class="seg-tags">
@@ -838,7 +830,6 @@ function loadSeg(idx) {
   const seg = segments[idx];
   segSecsLeft = seg.mins * 60;
 
-  document.getElementById('sessEmoji').textContent = seg.treatment.emoji;
   document.getElementById('sessName').textContent = seg.treatment.type;
   document.getElementById('sessMood').textContent = `${seg.treatment.mood} · ${fmtMins(seg.mins)}`;
   document.getElementById('sessTimer').textContent = fmtSecs(segSecsLeft);
@@ -872,7 +863,7 @@ function updateTrack(seg, elapsedSecs) {
 function updateNextUp(idx) {
   const next = segments[idx + 1];
   document.getElementById('nextUp').innerHTML = next
-    ? `Next: <strong>${next.treatment.emoji} ${next.treatment.type} · ${fmtMins(next.mins)}</strong>`
+    ? `Next: <strong>${next.treatment.type} · ${fmtMins(next.mins)}</strong>`
     : '<strong>Final section</strong>';
 }
 
