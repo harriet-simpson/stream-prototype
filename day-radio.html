@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Day Radio — Myndstream</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, sans-serif;
+      background: #0b0c16;
+      color: #fff;
+      display: flex; flex-direction: column;
+      height: 100vh; overflow: hidden;
+    }
+
+    .top-banner {
+      background: #12131f; text-align: center;
+      padding: 7px 16px; font-size: 11.5px; color: #999;
+      border-bottom: 1px solid #1e1f30; flex-shrink: 0;
+    }
+    .top-banner a { color: #6ecfe0; text-decoration: none; }
+
+    .layout { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: 210px; background: #0d0e1b;
+      border-right: 1px solid #1a1b2c;
+      display: flex; flex-direction: column;
+      overflow-y: auto; flex-shrink: 0;
+    }
+    .sidebar::-webkit-scrollbar { width: 0; }
+    .logo {
+      display: flex; align-items: center;
+      padding: 18px 16px 14px; text-decoration: none;
+    }
+    .logo-img { height: 22px; width: auto; display: block; }
+    .nav-list { list-style: none; padding: 4px 0; }
+    .nav-list a {
+      display: flex; align-items: center; gap: 11px;
+      padding: 9px 16px; color: #7a7b94; font-size: 13px;
+      text-decoration: none; transition: color 0.15s, background 0.15s;
+    }
+    .nav-list a:hover { color: #d0d1e8; background: #161727; }
+    .nav-list a.active { color: #7dd3e8; background: #161727; }
+    .nav-list a .icon { font-size: 15px; width: 18px; text-align: center; }
+    .sidebar-divider { height: 1px; background: #1a1b2c; margin: 8px 14px; }
+    .sidebar-section-label {
+      padding: 8px 16px 3px; font-size: 9.5px; color: #4a4b62;
+      text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;
+    }
+
+    /* ── MAIN ── */
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .topbar {
+      display: flex; justify-content: flex-end; align-items: center; gap: 16px;
+      padding: 11px 22px; background: #0d0e1b;
+      border-bottom: 1px solid #1a1b2c; flex-shrink: 0;
+    }
+    .topbar-device { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #6a7090; }
+    .account-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: #1a1b2e; border: 1px solid #26273e; border-radius: 18px;
+      padding: 6px 14px; cursor: pointer; color: #c0c1d8; font-size: 12.5px;
+      transition: background 0.15s;
+    }
+    .account-btn:hover { background: #22233a; }
+    .account-btn::after { content: '▾'; font-size: 10px; color: #888; }
+
+    /* ════════════════════════════
+       VIEW 1: SCHEDULE BUILDER
+    ════════════════════════════ */
+    #view-build {
+      flex: 1; display: flex; flex-direction: column;
+      overflow: hidden; min-height: 0;
+    }
+
+    /* Page header */
+    .build-header {
+      padding: 22px 28px 16px; flex-shrink: 0;
+      border-bottom: 1px solid #1a1b2c;
+    }
+    .page-back {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: #6a7090; font-size: 12px; text-decoration: none;
+      margin-bottom: 10px; transition: color 0.15s;
+    }
+    .page-back:hover { color: #c0c1d8; }
+    .page-title { font-size: 24px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 3px; }
+    .page-subtitle { font-size: 12.5px; color: #6a7090; line-height: 1.5; }
+
+    /* Two-column layout */
+    .build-layout {
+      display: grid;
+      grid-template-columns: 1fr 240px;
+      flex: 1; min-height: 0; overflow: hidden;
+    }
+
+    /* ── LEFT: Timeline column ── */
+    .timeline-col {
+      padding: 20px 24px 48px 28px;
+      overflow-y: auto; min-height: 0;
+      border-right: 1px solid #1a1b2c;
+    }
+    .timeline-col::-webkit-scrollbar { width: 5px; }
+    .timeline-col::-webkit-scrollbar-thumb { background: #22233a; border-radius: 3px; }
+
+    .section-label {
+      font-size: 9.5px; font-weight: 600; letter-spacing: 1.2px;
+      text-transform: uppercase; color: #4a4b62; margin-bottom: 14px;
+    }
+
+    /* Stats bar */
+    .sched-summary {
+      background: #12131f; border: 1px solid #1e1f30;
+      border-radius: 12px; padding: 14px 18px;
+      margin-bottom: 18px; display: flex; gap: 24px;
+    }
+    .sched-stat-num { font-size: 20px; font-weight: 700; margin-bottom: 2px; }
+    .sched-stat-label { font-size: 9.5px; color: #6a7090; text-transform: uppercase; letter-spacing: 0.8px; }
+
+    /* Timeline empty state */
+    .timeline-empty {
+      text-align: center; padding: 52px 24px;
+      color: #4a4b64; border: 1px dashed #1a1b2c;
+      border-radius: 12px; margin-bottom: 20px;
+    }
+    .timeline-empty-icon { font-size: 24px; margin-bottom: 10px; opacity: 0.5; }
+    .timeline-empty-title { font-size: 13.5px; font-weight: 600; margin-bottom: 5px; color: #5a5b74; }
+    .timeline-empty-sub { font-size: 12px; line-height: 1.6; }
+
+    /* Appointment rows */
+    .appt-list { display: flex; flex-direction: column; margin-bottom: 20px; }
+
+    .appt-row {
+      display: flex; align-items: flex-start; gap: 0;
+      padding: 10px 0; border-bottom: 1px solid #1a1b2c;
+    }
+    .appt-row:first-child { border-top: 1px solid #1a1b2c; }
+
+    .appt-time {
+      font-size: 12px; color: #6a7090;
+      width: 46px; flex-shrink: 0;
+      padding-top: 13px;
+      font-variant-numeric: tabular-nums; letter-spacing: 0.2px;
+    }
+    .appt-dot {
+      width: 9px; height: 9px; border-radius: 50%;
+      flex-shrink: 0; margin-top: 16px; margin-right: 12px;
+    }
+    .appt-card {
+      flex: 1; background: #12131f; border: 1px solid #1a1b2c;
+      border-radius: 10px; padding: 10px 12px;
+      display: flex; align-items: center; gap: 11px;
+      transition: border-color 0.15s;
+    }
+    .appt-card:hover { border-color: #22233a; }
+    .appt-thumb {
+      width: 36px; height: 36px; border-radius: 6px;
+      overflow: hidden; flex-shrink: 0;
+    }
+    .appt-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .appt-info { flex: 1; min-width: 0; }
+    .appt-name {
+      font-size: 13px; font-weight: 600; color: #d0d1e8;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-bottom: 3px;
+    }
+    .appt-meta { display: flex; align-items: center; gap: 6px; }
+    .appt-cat-pill {
+      font-size: 10px; font-weight: 600;
+      background: #1a1b2c; color: #7a7b94;
+      border-radius: 20px; padding: 1px 7px;
+    }
+    .appt-dur { font-size: 11px; color: #6a7090; }
+    .appt-end-time { font-size: 11px; color: #4a4b62; }
+    .appt-remove {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: transparent; border: none; color: #4a4b64;
+      font-size: 16px; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0; margin-left: 4px;
+      transition: color 0.15s; font-family: inherit;
+    }
+    .appt-remove:hover { color: #e05a5a; }
+
+    /* Start button */
+    .timeline-footer { padding-top: 4px; }
+    .start-day-btn {
+      width: 100%; padding: 13px;
+      border-radius: 10px; border: none;
+      background: linear-gradient(135deg, #5bacd4, #7b6cf8);
+      color: #fff; font-size: 14px; font-weight: 700;
+      font-family: inherit; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 9px;
+      transition: opacity 0.15s;
+    }
+    .start-day-btn:disabled { opacity: 0.28; cursor: not-allowed; }
+    .start-day-btn:not(:disabled):hover { opacity: 0.88; }
+    .start-day-btn svg { width: 16px; height: 16px; fill: #fff; }
+
+    /* ── RIGHT: Add Treatment panel ── */
+    .add-panel {
+      display: flex; flex-direction: column;
+      overflow: hidden; min-height: 0;
+      background: #0d0e1b;
+    }
+
+    .add-panel-header {
+      padding: 16px 18px 14px; flex-shrink: 0;
+      border-bottom: 1px solid #1a1b2c;
+    }
+    .add-panel-title { font-size: 13px; font-weight: 700; color: #e0e1f0; }
+
+    .add-field { padding: 14px 18px 0; flex-shrink: 0; }
+    .add-label {
+      display: block; font-size: 9.5px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 1.2px;
+      color: #4a4b62; margin-bottom: 8px;
+    }
+
+    /* Time input */
+    .add-time-input {
+      width: 100%; background: #12131f;
+      border: 1px solid #22233a; border-radius: 10px;
+      padding: 11px 14px; color: #e0e1f0;
+      font-size: 22px; font-weight: 300;
+      font-variant-numeric: tabular-nums; letter-spacing: 2px;
+      font-family: inherit; outline: none;
+      transition: border-color 0.2s; margin-bottom: 14px;
+    }
+    .add-time-input:focus { border-color: rgba(125,211,232,0.45); }
+    .add-time-input::-webkit-calendar-picker-indicator { filter: invert(0.5); cursor: pointer; }
+
+    /* Playlist picker */
+    .add-playlist-label { padding: 2px 18px 8px; flex-shrink: 0; }
+
+    .playlist-picker {
+      flex: 1; overflow-y: auto; min-height: 0;
+      border-top: 1px solid #1a1b2c;
+    }
+    .playlist-picker::-webkit-scrollbar { width: 4px; }
+    .playlist-picker::-webkit-scrollbar-thumb { background: #22233a; border-radius: 2px; }
+
+    .picker-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 18px;
+      cursor: pointer; border-bottom: 1px solid #1a1b2c;
+      transition: background 0.12s;
+      border-left: 2px solid transparent;
+    }
+    .picker-row:last-child { border-bottom: none; }
+    .picker-row:hover { background: #161727; }
+    .picker-row.selected {
+      background: linear-gradient(90deg, rgba(91,172,212,0.08) 0%, transparent 100%);
+      border-left-color: #7dd3e8;
+    }
+    .picker-thumb { width: 28px; height: 28px; border-radius: 5px; overflow: hidden; flex-shrink: 0; }
+    .picker-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .picker-info { flex: 1; min-width: 0; }
+    .picker-name { font-size: 12px; font-weight: 600; color: #c0c1d8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .picker-meta { font-size: 10px; color: #6a7090; margin-top: 1px; }
+    .picker-check {
+      width: 15px; height: 15px; border-radius: 50%; flex-shrink: 0;
+      background: #7dd3e8; display: none;
+      align-items: center; justify-content: center;
+      font-size: 9px; color: #0b0c16; font-weight: 800;
+    }
+    .picker-row.selected .picker-check { display: flex; }
+
+    /* Add button + error */
+    .add-panel-footer { padding: 12px 18px 16px; flex-shrink: 0; border-top: 1px solid #1a1b2c; }
+    .add-error {
+      font-size: 11px; color: #e05a5a;
+      text-align: center; margin-bottom: 8px; min-height: 16px;
+    }
+    .add-appt-btn {
+      width: 100%; padding: 12px; border-radius: 10px; border: none;
+      background: linear-gradient(135deg, #5bacd4, #7b6cf8);
+      color: #fff; font-size: 13px; font-weight: 700;
+      font-family: inherit; cursor: pointer; transition: opacity 0.15s;
+    }
+    .add-appt-btn:disabled { opacity: 0.28; cursor: not-allowed; }
+    .add-appt-btn:not(:disabled):hover { opacity: 0.88; }
+
+    /* ════════════════════════════
+       VIEW 2: SESSION (PLAYING)
+    ════════════════════════════ */
+    #view-session {
+      flex: 1; display: none; flex-direction: column;
+      position: relative; overflow: hidden;
+    }
+
+    .session-bg {
+      position: absolute; inset: 0; opacity: 0.2;
+      transition: opacity 0.4s ease;
+    }
+    .session-vignette {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at center, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.7) 100%);
+    }
+    .session-inner {
+      position: relative; z-index: 2;
+      flex: 1; display: flex; flex-direction: column;
+      padding: 20px 28px 32px;
+    }
+    .session-topbar {
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .session-back {
+      display: inline-flex; align-items: center; gap: 7px;
+      color: rgba(255,255,255,0.5); font-size: 12px;
+      background: none; border: none; cursor: pointer;
+      padding: 0; font-family: inherit; transition: color 0.15s;
+    }
+    .session-back:hover { color: rgba(255,255,255,0.9); }
+    .session-step-label { font-size: 11px; color: rgba(255,255,255,0.4); }
+
+    .session-center {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; text-align: center;
+    }
+    .session-tag {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(255,255,255,0.12); backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 20px; padding: 4px 12px;
+      font-size: 10px; font-weight: 700; letter-spacing: 1px; margin-bottom: 12px;
+    }
+    .session-tag .s-dot {
+      width: 6px; height: 6px; border-radius: 50%; background: #4ade80;
+      animation: pulse-dot 1.4s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.35; transform: scale(0.75); }
+    }
+    .session-time-badge {
+      font-size: 13px; color: rgba(255,255,255,0.45);
+      margin-bottom: 6px; font-variant-numeric: tabular-nums;
+    }
+    .session-name { font-size: 30px; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.4px; }
+    .session-cat { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 28px; }
+
+    .session-timer {
+      font-size: 56px; font-weight: 200;
+      letter-spacing: 2px; margin-bottom: 32px;
+      font-variant-numeric: tabular-nums; color: rgba(255,255,255,0.9);
+    }
+    .session-play-btn {
+      width: 68px; height: 68px; background: rgba(255,255,255,0.92);
+      border-radius: 50%; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.15s; margin-bottom: 32px;
+    }
+    .session-play-btn:hover { transform: scale(1.07); }
+    .session-play-btn svg { width: 26px; height: 26px; fill: #111; }
+    .session-play-btn .sp-pause { display: none; }
+    .session-play-btn.playing .sp-play { display: none; }
+    .session-play-btn.playing .sp-pause { display: block; }
+
+    .session-progress-wrap {
+      width: 100%; max-width: 320px;
+      height: 3px; background: rgba(255,255,255,0.12);
+      border-radius: 2px; margin-bottom: 36px; overflow: hidden;
+    }
+    .session-progress-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, #5bacd4, #7b6cf8);
+      border-radius: 2px; transition: width 0.5s linear;
+    }
+    .up-next-panel {
+      background: rgba(255,255,255,0.06); backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px; padding: 14px 18px;
+      min-width: 260px; max-width: 320px;
+    }
+    .up-next-label {
+      font-size: 9.5px; font-weight: 700; letter-spacing: 1.2px;
+      text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 10px;
+    }
+    .up-next-list { display: flex; flex-direction: column; gap: 7px; }
+    .up-next-item { display: flex; align-items: center; gap: 10px; opacity: 0.5; }
+    .up-next-item.current { opacity: 1; }
+    .up-next-num { font-size: 10px; color: rgba(255,255,255,0.4); width: 14px; flex-shrink: 0; }
+    .up-next-item.current .up-next-num { color: #7dd3e8; }
+    .up-next-time { font-size: 11px; color: rgba(255,255,255,0.4); font-variant-numeric: tabular-nums; width: 36px; }
+    .up-next-name { font-size: 12.5px; color: rgba(255,255,255,0.7); flex: 1; }
+    .up-next-item.current .up-next-name { color: #fff; font-weight: 600; }
+    .up-next-dur { font-size: 11px; color: rgba(255,255,255,0.35); }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #22233a; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<div class="top-banner">
+  From Apple: enjoy your free trial. Explore our <a href="#">app</a>
+</div>
+
+<div class="layout">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <nav class="sidebar">
+    <a href="index.html" class="logo">
+      <img src="assets/myndstream.svg" alt="Myndstream" class="logo-img" />
+    </a>
+    <ul class="nav-list">
+      <li><a href="index.html"><span class="icon">⌂</span> Home</a></li>
+      <li><a href="#"><span class="icon">⌕</span> Search</a></li>
+      <li><a href="#"><span class="icon">♡</span> My Favorites</a></li>
+      <li><a href="#"><span class="icon">♪</span> Music Queue</a></li>
+      <li><a href="#"><span class="icon">◎</span> Zones</a></li>
+    </ul>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section-label">Features</div>
+    <ul class="nav-list">
+      <li><a href="circadian-radio.html"><span class="icon"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><circle cx="6" cy="6" r="1.8" fill="currentColor"/><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/></svg></span> Circadian Radio</a></li>
+      <li><a href="session-filter.html"><span class="icon"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/><path d="M6 3.5v2.5l1.8 1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Treatment Timer</a></li>
+      <li><a href="day-radio.html" class="active"><span class="icon"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><rect x="0.5" y="0.5" width="11" height="2.8" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="0.5" y="4.6" width="11" height="2.8" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="0.5" y="8.7" width="11" height="2.8" rx="1" stroke="currentColor" stroke-width="1.2"/></svg></span> Day Radio</a></li>
+      <li><a href="calendar-radio.html"><span class="icon"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><rect x="0.5" y="2" width="11" height="9.5" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M0.5 5.5h11" stroke="currentColor" stroke-width="1.2"/><path d="M3.5 0.5v3M8.5 0.5v3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span> Calendar Sync</a></li>
+      <li><a href="prompted-playlist.html"><span class="icon">✦</span> Prompted Playlist</a></li>
+    </ul>
+  </nav>
+
+  <!-- ═══ MAIN ═══ -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-device">Listening on Harriet's iPhone</div>
+      <button class="account-btn">Account</button>
+    </div>
+
+    <!-- ── VIEW 1: SCHEDULE BUILDER ── -->
+    <div id="view-build">
+
+      <div class="build-header">
+        <a href="index.html" class="page-back">← Back to Home</a>
+        <h1 class="page-title">Day Radio</h1>
+        <p class="page-subtitle">Add your client times and assign music to each appointment. Myndstream plays the right music for every session, in order.</p>
+      </div>
+
+      <div class="build-layout">
+
+        <!-- LEFT: Schedule timeline -->
+        <div class="timeline-col">
+
+          <div class="section-label">Your Schedule</div>
+
+          <!-- Stats summary (hidden until appointments added) -->
+          <div class="sched-summary" id="schedSummary" style="display:none">
+            <div>
+              <div class="sched-stat-num" id="statSessions" style="color:#7dd3e8">0</div>
+              <div class="sched-stat-label">Sessions</div>
+            </div>
+            <div>
+              <div class="sched-stat-num" id="statDuration" style="color:#7dd3e8">0m</div>
+              <div class="sched-stat-label">Total time</div>
+            </div>
+          </div>
+
+          <!-- Empty state -->
+          <div class="timeline-empty" id="timelineEmpty">
+            <div class="timeline-empty-icon">◷</div>
+            <div class="timeline-empty-title">No appointments yet</div>
+            <div class="timeline-empty-sub">Set a time and choose a treatment<br>from the panel on the right</div>
+          </div>
+
+          <!-- Appointment list -->
+          <div class="appt-list" id="apptList" style="display:none"></div>
+
+          <!-- Start button -->
+          <div class="timeline-footer">
+            <button class="start-day-btn" id="startDayBtn" onclick="startDayRadio()" disabled>
+              <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              Start Day Radio
+            </button>
+          </div>
+
+        </div>
+
+        <!-- RIGHT: Add Treatment panel -->
+        <div class="add-panel">
+
+          <div class="add-panel-header">
+            <div class="add-panel-title">Add Treatment</div>
+          </div>
+
+          <div class="add-field">
+            <label class="add-label" for="apptTime">Start Time</label>
+            <input type="time" id="apptTime" class="add-time-input"
+                   value="09:00" step="300"
+                   oninput="onTimeChange()" />
+          </div>
+
+          <div class="add-field" style="padding-bottom:10px">
+            <label class="add-label">Treatment Playlist</label>
+          </div>
+
+          <div class="playlist-picker" id="playlistPicker"></div>
+
+          <div class="add-panel-footer">
+            <div class="add-error" id="addError"></div>
+            <button class="add-appt-btn" id="addApptBtn" onclick="addAppt()" disabled>
+              Add to Schedule
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── VIEW 2: SESSION (PLAYING) ── -->
+    <div id="view-session">
+      <div class="session-bg" id="sessionBg"></div>
+      <div class="session-vignette"></div>
+
+      <div class="session-inner">
+        <div class="session-topbar">
+          <button class="session-back" onclick="stopSession()">← End Day Radio</button>
+          <span class="session-step-label" id="sessionStepLabel"></span>
+        </div>
+
+        <div class="session-center">
+          <div class="session-tag"><div class="s-dot"></div> DAY RADIO</div>
+          <div class="session-time-badge" id="sessionTimeBadge"></div>
+          <div class="session-name" id="sessionName"></div>
+          <div class="session-cat" id="sessionCat"></div>
+
+          <div class="session-timer" id="sessionTimer">00:00</div>
+
+          <button class="session-play-btn playing" id="sessionPlayBtn" onclick="toggleSession()">
+            <svg class="sp-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <svg class="sp-pause" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+          </button>
+
+          <div class="session-progress-wrap">
+            <div class="session-progress-fill" id="sessionProgress"></div>
+          </div>
+
+          <div class="up-next-panel" id="upNextPanel">
+            <div class="up-next-label">Up Next</div>
+            <div class="up-next-list" id="upNextList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  /* ══════════════════════
+     DATA
+  ══════════════════════ */
+  const PLAYLISTS = [
+    { id: 'quick-calm',       name: 'Quick Calm',         category: 'Relaxation',  duration: 15, img: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=500&q=80&auto=format&fit=crop' },
+    { id: 'express-focus',    name: 'Express Focus',      category: 'Focus',       duration: 15, img: 'https://images.unsplash.com/photo-1431794062232-2a99a5431c6c?w=500&q=80&auto=format&fit=crop' },
+    { id: 'morning-restore',  name: 'Morning Restore',    category: 'Recovery',    duration: 20, img: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=500&q=80&auto=format&fit=crop' },
+    { id: 'tension-melt',     name: 'Tension Melt',       category: 'Pain Relief', duration: 20, img: 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=500&q=80&auto=format&fit=crop' },
+    { id: 'mindful-breath',   name: 'Mindful Breath',     category: 'Focus',       duration: 20, img: 'https://images.unsplash.com/photo-1431794062232-2a99a5431c6c?w=500&q=80&auto=format&fit=crop' },
+    { id: 'gentle-restore',   name: 'Gentle Restore',     category: 'Relaxation',  duration: 30, img: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=500&q=80&auto=format&fit=crop' },
+    { id: 'pain-ease',        name: 'Pain Ease',          category: 'Pain Relief', duration: 30, img: 'https://images.unsplash.com/photo-1476673160081-cf065607f449?w=500&q=80&auto=format&fit=crop' },
+    { id: 'sleep-drift',      name: 'Sleep Drift',        category: 'Sleep',       duration: 30, img: 'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?w=500&q=80&auto=format&fit=crop' },
+    { id: 'swedish-calm',     name: 'Swedish Calm',       category: 'Relaxation',  duration: 45, img: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=500&q=80&auto=format&fit=crop' },
+    { id: 'recovery-flow',    name: 'Recovery Flow',      category: 'Recovery',    duration: 45, img: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=500&q=80&auto=format&fit=crop' },
+    { id: 'deep-tissue-flow', name: 'Deep Tissue Flow',   category: 'Pain Relief', duration: 50, img: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=500&q=80&auto=format&fit=crop' },
+    { id: 'strength-session', name: 'Strength Session',   category: 'Strength',    duration: 50, img: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500&q=80&auto=format&fit=crop' },
+    { id: 'reiki-harmony',    name: 'Reiki Harmony',      category: 'Relaxation',  duration: 50, img: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=500&q=80&auto=format&fit=crop' },
+    { id: 'total-unwind',     name: 'Total Unwind',       category: 'Relaxation',  duration: 60, img: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=500&q=80&auto=format&fit=crop' },
+    { id: 'deep-sleep',       name: 'Deep Sleep',         category: 'Sleep',       duration: 60, img: 'https://images.unsplash.com/photo-1532978379173-523e16f371f2?w=500&q=80&auto=format&fit=crop' },
+    { id: 'pain-relief-full', name: 'Pain Relief Full',   category: 'Pain Relief', duration: 60, img: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500&q=80&auto=format&fit=crop' },
+    { id: 'focus-immersion',  name: 'Focus Immersion',    category: 'Focus',       duration: 60, img: 'https://images.unsplash.com/photo-1431794062232-2a99a5431c6c?w=500&q=80&auto=format&fit=crop' },
+    { id: 'extended-restore', name: 'Extended Restore',   category: 'Recovery',    duration: 90, img: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=500&q=80&auto=format&fit=crop' },
+    { id: 'deep-meditation',  name: 'Deep Meditation',    category: 'Relaxation',  duration: 90, img: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=500&q=80&auto=format&fit=crop' },
+  ];
+
+  const CAT_COLORS = {
+    'Relaxation':  '#38bdf8',
+    'Focus':       '#60a5fa',
+    'Recovery':    '#22c55e',
+    'Pain Relief': '#ef4444',
+    'Sleep':       '#a78bfa',
+    'Strength':    '#fb923c',
+  };
+
+  /* ══════════════════════
+     STATE
+  ══════════════════════ */
+  let appointments = [];   // { id, timeStr, playlist }
+  let nextId = 1;
+  let selectedPlaylistId = null;
+
+  // Session state
+  let stack = [];
+  let currentStep = 0;
+  let sessionSecondsLeft = 0;
+  let sessionTotalSeconds = 0;
+  let sessionInterval = null;
+  let isPlaying = false;
+
+  /* ══════════════════════
+     HELPERS
+  ══════════════════════ */
+  function fmtTime(str) {
+    // "09:00" → "9:00", "14:30" → "2:30 PM" style — keep 24h for simplicity
+    return str;
+  }
+
+  function addMins(timeStr, mins) {
+    const [h, m] = timeStr.split(':').map(Number);
+    const total = h * 60 + m + mins;
+    const eh = Math.floor(total / 60) % 24;
+    const em = total % 60;
+    return String(eh).padStart(2, '0') + ':' + String(em).padStart(2, '0');
+  }
+
+  /* ══════════════════════
+     PLAYLIST PICKER
+  ══════════════════════ */
+  function renderPicker() {
+    const el = document.getElementById('playlistPicker');
+    el.innerHTML = PLAYLISTS.map(p => `
+      <div class="picker-row ${selectedPlaylistId === p.id ? 'selected' : ''}"
+           id="picker-${p.id}"
+           onclick="selectPlaylist('${p.id}')">
+        <div class="picker-thumb">
+          <img src="${p.img}" alt="${p.name}" />
+        </div>
+        <div class="picker-info">
+          <div class="picker-name">${p.name}</div>
+          <div class="picker-meta">${p.category} · ${p.duration} min</div>
+        </div>
+        <div class="picker-check">✓</div>
+      </div>
+    `).join('');
+  }
+
+  function selectPlaylist(id) {
+    selectedPlaylistId = id;
+    renderPicker();
+    document.getElementById('addError').textContent = '';
+    updateAddBtn();
+  }
+
+  function onTimeChange() {
+    document.getElementById('addError').textContent = '';
+    updateAddBtn();
+  }
+
+  function updateAddBtn() {
+    const timeVal = document.getElementById('apptTime').value;
+    document.getElementById('addApptBtn').disabled = !(timeVal && selectedPlaylistId);
+  }
+
+  /* ══════════════════════
+     ADD APPOINTMENT
+  ══════════════════════ */
+  function addAppt() {
+    const timeStr = document.getElementById('apptTime').value;
+    if (!timeStr || !selectedPlaylistId) return;
+
+    // Check for duplicate time
+    if (appointments.find(a => a.timeStr === timeStr)) {
+      document.getElementById('addError').textContent =
+        'A treatment is already scheduled at ' + timeStr;
+      return;
+    }
+
+    const playlist = PLAYLISTS.find(p => p.id === selectedPlaylistId);
+    appointments.push({ id: nextId++, timeStr, playlist });
+
+    // Auto-advance time input to end of this treatment for convenience
+    const nextTime = addMins(timeStr, playlist.duration);
+    document.getElementById('apptTime').value = nextTime;
+
+    // Reset selection
+    selectedPlaylistId = null;
+    document.getElementById('addError').textContent = '';
+    renderPicker();
+    updateAddBtn();
+    renderTimeline();
+  }
+
+  /* ══════════════════════
+     TIMELINE RENDER
+  ══════════════════════ */
+  function renderTimeline() {
+    const sorted = appointments.slice().sort((a, b) => a.timeStr.localeCompare(b.timeStr));
+
+    const emptyEl  = document.getElementById('timelineEmpty');
+    const listEl   = document.getElementById('apptList');
+    const summaryEl = document.getElementById('schedSummary');
+    const startBtn = document.getElementById('startDayBtn');
+
+    if (sorted.length === 0) {
+      emptyEl.style.display   = '';
+      listEl.style.display    = 'none';
+      summaryEl.style.display = 'none';
+      startBtn.disabled       = true;
+      return;
+    }
+
+    emptyEl.style.display   = 'none';
+    listEl.style.display    = 'flex';
+    summaryEl.style.display = 'flex';
+    startBtn.disabled       = false;
+
+    // Update stats
+    const totalMins = sorted.reduce((s, a) => s + a.playlist.duration, 0);
+    const hrs  = Math.floor(totalMins / 60);
+    const mins = totalMins % 60;
+    document.getElementById('statSessions').textContent = sorted.length;
+    document.getElementById('statDuration').textContent =
+      hrs > 0 ? `${hrs}h ${mins}m` : `${totalMins}m`;
+
+    // Render rows
+    listEl.innerHTML = sorted.map(a => {
+      const p    = a.playlist;
+      const dot  = CAT_COLORS[p.category] || '#7dd3e8';
+      const end  = addMins(a.timeStr, p.duration);
+      return `
+        <div class="appt-row">
+          <div class="appt-time">${a.timeStr}</div>
+          <div class="appt-dot" style="background:${dot}"></div>
+          <div class="appt-card">
+            <div class="appt-thumb">
+              <img src="${p.img}" alt="${p.name}" />
+            </div>
+            <div class="appt-info">
+              <div class="appt-name">${p.name}</div>
+              <div class="appt-meta">
+                <span class="appt-cat-pill">${p.category}</span>
+                <span class="appt-dur">${p.duration} min</span>
+                <span class="appt-end-time">ends ${end}</span>
+              </div>
+            </div>
+            <button class="appt-remove" onclick="removeAppt(${a.id})" title="Remove">×</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function removeAppt(id) {
+    appointments = appointments.filter(a => a.id !== id);
+    renderTimeline();
+  }
+
+  /* ══════════════════════
+     SESSION PLAYBACK
+  ══════════════════════ */
+  function startDayRadio() {
+    if (appointments.length === 0) return;
+    stack = appointments
+      .slice()
+      .sort((a, b) => a.timeStr.localeCompare(b.timeStr));
+    currentStep = 0;
+    showView('view-session');
+    loadStep(0);
+    resumeSession();
+  }
+
+  function loadStep(idx) {
+    const appt = stack[idx];
+    const p    = appt.playlist;
+
+    document.getElementById('sessionTimeBadge').textContent = appt.timeStr;
+    document.getElementById('sessionName').textContent      = p.name;
+    document.getElementById('sessionCat').textContent       = p.category + ' · ' + p.duration + ' min';
+    document.getElementById('sessionStepLabel').textContent =
+      'Session ' + (idx + 1) + ' of ' + stack.length;
+
+    // Background
+    document.getElementById('sessionBg').style.cssText =
+      `position:absolute;inset:0;
+       background:url('${p.img}') center/cover no-repeat;
+       filter:blur(24px) brightness(0.5);transform:scale(1.08);`;
+
+    sessionTotalSeconds = p.duration * 60;
+    sessionSecondsLeft  = sessionTotalSeconds;
+    updateTimerDisplay();
+    updateProgress();
+    renderUpNext(idx);
+  }
+
+  function resumeSession() {
+    isPlaying = true;
+    document.getElementById('sessionPlayBtn').classList.add('playing');
+    sessionInterval = setInterval(tick, 1000);
+  }
+
+  function pauseSession() {
+    isPlaying = false;
+    document.getElementById('sessionPlayBtn').classList.remove('playing');
+    clearInterval(sessionInterval);
+  }
+
+  function toggleSession() { isPlaying ? pauseSession() : resumeSession(); }
+
+  function tick() {
+    if (sessionSecondsLeft <= 0) {
+      clearInterval(sessionInterval);
+      currentStep++;
+      if (currentStep < stack.length) {
+        loadStep(currentStep);
+        resumeSession();
+      } else {
+        stopSession();
+      }
+      return;
+    }
+    sessionSecondsLeft--;
+    updateTimerDisplay();
+    updateProgress();
+  }
+
+  function updateTimerDisplay() {
+    const m = Math.floor(sessionSecondsLeft / 60);
+    const s = sessionSecondsLeft % 60;
+    document.getElementById('sessionTimer').textContent =
+      String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+  }
+
+  function updateProgress() {
+    const pct = sessionTotalSeconds > 0
+      ? ((sessionTotalSeconds - sessionSecondsLeft) / sessionTotalSeconds) * 100 : 0;
+    document.getElementById('sessionProgress').style.width = pct + '%';
+  }
+
+  function renderUpNext(currentIdx) {
+    const visible = stack.slice(currentIdx, currentIdx + 4);
+    document.getElementById('upNextList').innerHTML = visible.map((a, i) => `
+      <div class="up-next-item ${i === 0 ? 'current' : ''}">
+        <span class="up-next-num">${currentIdx + i + 1}</span>
+        <span class="up-next-time">${a.timeStr}</span>
+        <span class="up-next-name">${a.playlist.name}</span>
+        <span class="up-next-dur">${a.playlist.duration}m</span>
+      </div>
+    `).join('');
+    document.getElementById('upNextPanel').style.display =
+      stack.length > 1 ? '' : 'none';
+  }
+
+  function stopSession() {
+    pauseSession();
+    showView('view-build');
+  }
+
+  /* ══════════════════════
+     VIEW SWITCHING
+  ══════════════════════ */
+  function showView(id) {
+    document.getElementById('view-build').style.display =
+      id === 'view-build' ? 'flex' : 'none';
+    document.getElementById('view-session').style.display =
+      id === 'view-session' ? 'flex' : 'none';
+  }
+
+  /* ══════════════════════
+     INIT
+  ══════════════════════ */
+  renderPicker();
+  renderTimeline();
+</script>
+</body>
+</html>
